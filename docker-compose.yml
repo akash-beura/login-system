@@ -50,6 +50,9 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
 
+      # Schema — use 'update' so Hibernate auto-creates tables on first run
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+
       # URLs
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
       APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080}
