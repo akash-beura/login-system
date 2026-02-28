@@ -1,0 +1,20 @@
+# Secrets — never commit
+.env
+
+# Backend
+login-system-backend/target/
+login-system-backend/.mvn/
+*.jar
+*.class
+
+# Frontend
+login-system-frontend/node_modules/
+login-system-frontend/build/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store

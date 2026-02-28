@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: login-system-backend
+
+  # Active profile — override via env var SPRING_PROFILES_ACTIVE
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+  # JPA shared settings
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  # OAuth2 — credentials injected per environment
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - email
+              - profile
+            redirect-uri: "${APP_BASE_URL}/login/oauth2/code/google"
+
+# Actuator — expose health + prometheus
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus, metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# Externalized app-level config (bound to AppProperties)
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiry-ms: ${JWT_EXPIRY_MS:3600000}          # 1 hour default
+    refresh-expiry-ms: ${JWT_REFRESH_EXPIRY_MS:604800000}  # 7 days default
+  frontend-url: ${FRONTEND_URL:http://localhost:3000}
+  base-url: ${APP_BASE_URL:http://localhost:8080}
+
+server:
+  port: ${SERVER_PORT:8080}

@@ -1,0 +1,52 @@
+/* ─────────────────────────────────────────────
+   Design Tokens — Login System
+   Instagram-inspired: silver bg, dark blue CTAs
+───────────────────────────────────────────── */
+:root {
+  /* Backgrounds */
+  --bg-app:          #f2f3f5;   /* silver/grey page background */
+  --bg-card:         #ffffff;   /* auth card surface */
+
+  /* Brand */
+  --color-primary:   #1a3a6b;   /* dark blue — primary buttons */
+  --color-primary-hover: #14306a;
+  --color-primary-active: #0e2555;
+
+  /* Text */
+  --text-primary:    #1a1a2e;
+  --text-secondary:  #6b7280;
+  --text-on-primary: #ffffff;
+
+  /* Borders & Inputs */
+  --border-color:    #d1d5db;
+  --border-focus:    #1a3a6b;
+  --input-bg:        #f9fafb;
+
+  /* Status */
+  --color-error:     #dc2626;
+  --color-error-bg:  #fef2f2;
+  --color-success:   #16a34a;
+
+  /* Radius */
+  --radius-btn:      8px;
+  --radius-input:    6px;
+  --radius-card:     12px;
+
+  /* Spacing */
+  --space-xs:  4px;
+  --space-sm:  8px;
+  --space-md:  16px;
+  --space-lg:  24px;
+  --space-xl:  32px;
+
+  /* Typography */
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sm:     0.875rem;
+  --font-base:   1rem;
+  --font-lg:     1.125rem;
+  --font-xl:     1.5rem;
+
+  /* Shadows */
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06);
+  --shadow-btn:  0 1px 2px rgba(0,0,0,0.15);
+}

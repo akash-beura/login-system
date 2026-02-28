@@ -1,0 +1,62 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-app);
+  padding: var(--space-md);
+}
+
+.card {
+  background-color: var(--bg-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-xl);
+  max-width: 460px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.badge {
+  font-size: 2.5rem;
+}
+
+.title {
+  font-size: var(--font-xl);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.subtitle {
+  font-size: var(--font-base);
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.greeting {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  background-color: var(--bg-app);
+  border-radius: var(--radius-input);
+  padding: var(--space-sm) var(--space-md);
+  width: 100%;
+}
+
+.logoutBtn {
+  background: none;
+  border: none;
+  color: var(--color-error);
+  font-size: var(--font-sm);
+  cursor: pointer;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-input);
+  transition: background 0.15s ease;
+}
+
+.logoutBtn:hover {
+  background-color: var(--color-error-bg);
+}
