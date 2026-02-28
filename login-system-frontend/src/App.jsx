@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
+import ThemeToggle from './components/common/ThemeToggle';
 import ProtectedRoute from './routes/ProtectedRoute';
 
 import LoginPage            from './pages/LoginPage';
@@ -11,7 +13,8 @@ import HomePage             from './pages/HomePage';
 
 export default function App() {
   return (
-    <AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
       <BrowserRouter>
         <Routes>
           {/* Public routes */}
@@ -51,6 +54,8 @@ export default function App() {
           <Route path="*"  element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>
-    </AuthProvider>
+      </AuthProvider>
+      <ThemeToggle />
+    </ThemeProvider>
   );
 }

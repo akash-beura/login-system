@@ -13,6 +13,8 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Locale;
+
 /**
  * Maps the Google OAuth2User to our internal User entity.
  *
@@ -33,9 +35,12 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
         // S-4: Guard against Google returning null claims (unverified or restricted accounts)
-        String email = oAuth2User.getAttribute("email");
-        String name  = oAuth2User.getAttribute("name");
+        String rawEmail = oAuth2User.getAttribute("email");
+        String name     = oAuth2User.getAttribute("name");
         String providerId = oAuth2User.getAttribute("sub");
+
+        // H-3: Normalize email to lowercase for consistent account matching across providers
+        String email = (rawEmail != null) ? rawEmail.toLowerCase(Locale.ROOT) : null;
 
         if (email == null || providerId == null) {
             throw new OAuth2AuthenticationException(

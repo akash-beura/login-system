@@ -2,11 +2,10 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import authService from '../services/authService';
-import AuthLayout from '../components/common/AuthLayout';
 import Input from '../components/common/Input';
 import Button from '../components/common/Button';
 import ErrorBanner from '../components/common/ErrorBanner';
-import styles from './AuthPage.module.css';
+import styles from './LoginPage.module.css';
 
 const GOOGLE_OAUTH_URL = `${process.env.REACT_APP_API_URL?.replace('/api/v1', '')}/oauth2/authorization/google`;
 
@@ -45,8 +44,6 @@ export default function LoginPage() {
       const data = await authService.login(form.email, form.password);
 
       if (data.requiresPasswordSet) {
-        // Account-linking flow: user registered via Google, no password yet.
-        // No token was issued — redirect back to Google OAuth to authenticate.
         navigate('/set-password-prompt');
         return;
       }
@@ -62,60 +59,70 @@ export default function LoginPage() {
   };
 
   return (
-    <AuthLayout>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Welcome back</h1>
-        <p className={styles.subtitle}>Sign in to your account</p>
+    <div className={styles.page}>
+
+      {/* ── Left branding panel (desktop only) ── */}
+      <div className={styles.leftPanel}>
+        <h1 className={styles.brandName}>Unified Login Portal</h1>
+        <p className={styles.brandTagline}>
+          Uniting fitness freaks
+        </p>
       </div>
 
-      <form onSubmit={handleSubmit} className={styles.form} noValidate>
-        <ErrorBanner message={apiError} />
+      {/* ── Right panel: card + footer ── */}
+      <div className={styles.rightPanel}>
+        <div className={styles.card}>
+          <form onSubmit={handleSubmit} className={styles.form} noValidate>
+            <ErrorBanner message={apiError} />
 
-        <Input
-          id="email"
-          name="email"
-          type="email"
-          label="Email"
-          placeholder="you@example.com"
-          value={form.email}
-          onChange={handleChange}
-          error={errors.email}
-          autoComplete="email"
-        />
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              label="Email"
+              placeholder="you@example.com"
+              value={form.email}
+              onChange={handleChange}
+              error={errors.email}
+              autoComplete="email"
+            />
 
-        <Input
-          id="password"
-          name="password"
-          type="password"
-          label="Password"
-          placeholder="••••••••"
-          value={form.password}
-          onChange={handleChange}
-          error={errors.password}
-          autoComplete="current-password"
-        />
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              label="Password"
+              placeholder="••••••••"
+              value={form.password}
+              onChange={handleChange}
+              error={errors.password}
+              autoComplete="current-password"
+            />
 
-        <Button type="submit" loading={loading}>
-          Sign in
-        </Button>
+            <Button type="submit" loading={loading}>
+              Log in
+            </Button>
 
-        <div className={styles.divider}>
-          <span>or</span>
+            <div className={styles.divider}>
+              <span>or</span>
+            </div>
+
+            <a href={GOOGLE_OAUTH_URL}>
+              <Button type="button" variant="google">
+                <GoogleIcon />
+                Continue with Google
+              </Button>
+            </a>
+          </form>
         </div>
 
-        <a href={GOOGLE_OAUTH_URL}>
-          <Button type="button" variant="google">
-            <GoogleIcon />
-            Continue with Google
-          </Button>
-        </a>
-      </form>
+        <p className={styles.footer}>
+          Don't have an account?{' '}
+          <Link to="/register">Sign up</Link>
+        </p>
+      </div>
 
-      <p className={styles.footer}>
-        Don't have an account?{' '}
-        <Link to="/register">Sign up</Link>
-      </p>
-    </AuthLayout>
+    </div>
   );
 }
 

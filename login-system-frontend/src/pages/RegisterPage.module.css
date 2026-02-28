@@ -1,0 +1,119 @@
+/* ─────────────────────────────────────────────
+   RegisterPage — additional layout styles
+   (Do NOT modify AuthPage.module.css)
+───────────────────────────────────────────── */
+
+/* Wider card override — register form needs more room than 400px */
+.wideCard {
+  max-width: 560px;
+}
+
+/* Page alignment — allow scrolling when card is tall */
+.scrollPage {
+  align-items: flex-start;
+  padding: var(--space-xl) var(--space-md);
+}
+
+/* Tighter vertical gap between form fields */
+.form {
+  gap: 12px;
+}
+
+/* Phone row: country-code select + number input side by side */
+.phoneRow {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: flex-start;
+}
+
+/* Country-code dropdown — wide enough to show "+91 India" */
+.phoneSelect {
+  width: 165px;
+  flex-shrink: 0;
+  padding: 10px 10px;
+  background-color: var(--input-bg);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-input);
+  font-family: var(--font-family);
+  font-size: var(--font-sm);
+  color: var(--text-primary);
+  outline: none;
+  cursor: pointer;
+  /* truncate long option text gracefully in closed state */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease,
+              box-shadow 0.15s ease;
+  appearance: auto;
+}
+
+.phoneSelect:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+/* Wrapper that lets the phone Input fill the remaining width */
+.phoneNumberWrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Two-column row used for city+state and zipCode+country */
+.twoCol {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.twoCol > * {
+  flex: 1;
+  min-width: 0;
+}
+
+/* "ADDRESS (OPTIONAL)" section header */
+.sectionLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-top: var(--space-xs);
+  margin-bottom: -2px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: color 0.3s ease;
+}
+
+/* Full-width country dropdown */
+.countrySelect {
+  width: 100%;
+  padding: 10px 12px;
+  background-color: var(--input-bg);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-input);
+  font-family: var(--font-family);
+  font-size: var(--font-base);
+  color: var(--text-primary);
+  outline: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease,
+              box-shadow 0.15s ease;
+  appearance: auto;
+}
+
+.countrySelect:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+/* Wrapper for a labelled select — mirrors Input.module.css .field structure */
+.selectField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.selectLabel {
+  font-size: var(--font-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
+}

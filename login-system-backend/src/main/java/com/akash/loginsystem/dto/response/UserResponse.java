@@ -16,6 +16,13 @@ public class UserResponse {
     private String name;
     private AuthProvider provider;
     private boolean passwordSet;
+    private String phoneCountryCode;
+    private String phoneNumber;
+    private String addressLine1;
+    private String city;
+    private String state;
+    private String zipCode;
+    private String country;
 
     public static UserResponse from(User user) {
         return UserResponse.builder()
@@ -24,6 +31,13 @@ public class UserResponse {
                 .name(user.getName())
                 .provider(user.getProvider())
                 .passwordSet(user.isPasswordSet())
+                .phoneCountryCode(user.getPhoneCountryCode())
+                .phoneNumber(user.getPhoneNumber())
+                .addressLine1(user.getAddressLine1())
+                .city(user.getCity())
+                .state(user.getState())
+                .zipCode(user.getZipCode())
+                .country(user.getCountry())
                 .build();
     }
 }

@@ -38,6 +38,16 @@ public class GlobalExceptionHandler {
         return body(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
     }
 
+    @ExceptionHandler(PasswordAlreadySetException.class)
+    public ResponseEntity<ErrorBody> handlePasswordAlreadySet(PasswordAlreadySetException ex) {
+        return body(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler(OAuthCodeExpiredException.class)
+    public ResponseEntity<ErrorBody> handleOAuthCodeExpired(OAuthCodeExpiredException ex) {
+        return body(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
     /** Bean-validation failures — returns field-level error map. */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorBody> handleValidation(MethodArgumentNotValidException ex) {

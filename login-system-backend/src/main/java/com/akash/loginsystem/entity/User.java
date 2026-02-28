@@ -55,6 +55,27 @@ public class User {
     @Builder.Default
     private Role role = Role.USER;
 
+    @Column
+    private String phoneCountryCode;
+
+    @Column
+    private String phoneNumber;
+
+    @Column
+    private String addressLine1;
+
+    @Column
+    private String city;
+
+    @Column
+    private String state;
+
+    @Column
+    private String zipCode;
+
+    @Column
+    private String country;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Instant createdAt;

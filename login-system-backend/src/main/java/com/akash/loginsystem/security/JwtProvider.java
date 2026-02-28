@@ -16,8 +16,12 @@ import java.util.UUID;
 
 /**
  * Handles JWT generation and validation.
- * Claims: userId, email, role.
+ * Claims: sub (userId), role, iss (issuer), jti (token ID).
  * Algorithm: HS256.
+ *
+ * M-3: Added iss and jti claims for RFC 7519 compliance.
+ *      Removed email claim — it was redundant (JwtAuthFilter loads user by sub/userId)
+ *      and would become stale if a user's email ever changes.
  */
 @Component
 @RequiredArgsConstructor
@@ -40,7 +44,6 @@ public class JwtProvider {
     public String generateAccessToken(User user) {
         return buildToken(
                 user.getId().toString(),
-                user.getEmail(),
                 user.getRole().name(),
                 appProperties.getJwt().getExpiryMs()
         );
@@ -71,17 +74,14 @@ public class JwtProvider {
         return parseClaims(token).getSubject();
     }
 
-    public String extractEmail(String token) {
-        return parseClaims(token).get("email", String.class);
-    }
-
     // ── Internal ──────────────────────────────────────────────────────────────
 
-    private String buildToken(String subject, String email, String role, long expiryMs) {
+    private String buildToken(String subject, String role, long expiryMs) {
         Date now = new Date();
         return Jwts.builder()
+                .id(UUID.randomUUID().toString())             // jti — unique token ID (RFC 7519)
+                .issuer(appProperties.getBaseUrl())           // iss — identifies this service
                 .subject(subject)
-                .claim("email", email)
                 .claim("role", role)
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + expiryMs))

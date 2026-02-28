@@ -1,26 +1,27 @@
 /* ─────────────────────────────────────────────
    Design Tokens — Login System
-   Instagram-inspired: silver bg, dark blue CTAs
+   Facebook-inspired: #f0f2f5 bg, #1877f2 primary
 ───────────────────────────────────────────── */
 :root {
   /* Backgrounds */
-  --bg-app:          #f2f3f5;   /* silver/grey page background */
+  --bg-app:          #f0f2f5;   /* Facebook's page background */
   --bg-card:         #ffffff;   /* auth card surface */
 
-  /* Brand */
-  --color-primary:   #1a3a6b;   /* dark blue — primary buttons */
-  --color-primary-hover: #14306a;
-  --color-primary-active: #0e2555;
+  /* Brand — Facebook blue */
+  --color-primary:        #1877f2;
+  --color-primary-hover:  #166fe5;
+  --color-primary-active: #1464d2;
 
   /* Text */
-  --text-primary:    #1a1a2e;
-  --text-secondary:  #6b7280;
+  --text-primary:    #1c1e21;
+  --text-secondary:  #65676b;
   --text-on-primary: #ffffff;
 
   /* Borders & Inputs */
-  --border-color:    #d1d5db;
-  --border-focus:    #1a3a6b;
-  --input-bg:        #f9fafb;
+  --border-color:    #ccd0d5;
+  --border-focus:    #1877f2;
+  --input-bg:        #ffffff;
+  --focus-ring:      rgba(24, 119, 242, 0.2);
 
   /* Status */
   --color-error:     #dc2626;
@@ -28,9 +29,9 @@
   --color-success:   #16a34a;
 
   /* Radius */
-  --radius-btn:      8px;
+  --radius-btn:      6px;
   --radius-input:    6px;
-  --radius-card:     12px;
+  --radius-card:     8px;
 
   /* Spacing */
   --space-xs:  4px;
@@ -40,13 +41,53 @@
   --space-xl:  32px;
 
   /* Typography */
-  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-sm:     0.875rem;
   --font-base:   1rem;
   --font-lg:     1.125rem;
   --font-xl:     1.5rem;
 
   /* Shadows */
-  --shadow-card: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06);
-  --shadow-btn:  0 1px 2px rgba(0,0,0,0.15);
+  --shadow-card: 0 2px 4px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.1);
+  --shadow-btn:  0 1px 2px rgba(0,0,0,0.1);
+
+  /* Google button (light mode) */
+  --btn-google-bg:    #ffffff;
+  --btn-google-hover: #f2f2f2;
+}
+
+/* ─────────────────────────────────────────────
+   Dark mode overrides
+   Applied via data-theme="dark" on <html>
+───────────────────────────────────────────── */
+[data-theme="dark"] {
+  /* Backgrounds */
+  --bg-app:          #18191a;
+  --bg-card:         #242526;
+
+  /* Brand — brighter blue readable on dark */
+  --color-primary:        #2d88ff;
+  --color-primary-hover:  #1a7af4;
+  --color-primary-active: #0d6fe8;
+
+  /* Text */
+  --text-primary:   #e4e6eb;
+  --text-secondary: #b0b3b8;
+
+  /* Borders & Inputs */
+  --border-color:  #3e4042;
+  --border-focus:  #2d88ff;
+  --input-bg:      #3a3b3c;
+  --focus-ring:    rgba(45, 136, 255, 0.25);
+
+  /* Status */
+  --color-error-bg: #3d1515;
+
+  /* Shadows */
+  --shadow-card: 0 1px 2px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.4);
+  --shadow-btn:  0 1px 2px rgba(0,0,0,0.35);
+
+  /* Google button (dark mode) */
+  --btn-google-bg:    #3a3b3c;
+  --btn-google-hover: #4e4f50;
 }

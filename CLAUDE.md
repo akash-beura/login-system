@@ -27,4 +27,4 @@ Defined in `.claude/rules.md` and `.claude/memory/conventions.md`.
 
 
 ## 📋 Memory
-Till last action memory should be stored in `.claude/memory/MEMORY.md` file.
+Till last action memory should be stored in `.claude/memory/MEMORY_PREVIOUS.md` file.

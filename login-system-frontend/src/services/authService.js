@@ -7,10 +7,11 @@ import apiClient from './apiClient';
 const authService = {
   /**
    * POST /auth/register
-   * Returns AuthResponse { accessToken, refreshToken, user }
+   * Accepts the full registration form object (name, email, password, and optional
+   * phone/address fields) and returns AuthResponse { accessToken, refreshToken, user }.
    */
-  register: async (name, email, password) => {
-    const { data } = await apiClient.post('/auth/register', { name, email, password });
+  register: async (formData) => {
+    const { data } = await apiClient.post('/auth/register', formData);
     return data;
   },
 

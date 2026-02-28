@@ -6,7 +6,6 @@ import com.akash.loginsystem.dto.request.RefreshRequest;
 import com.akash.loginsystem.dto.request.RegisterRequest;
 import com.akash.loginsystem.dto.request.SetPasswordRequest;
 import com.akash.loginsystem.dto.response.AuthResponse;
-import com.akash.loginsystem.security.oauth2.OAuthTokenStore;
 import com.akash.loginsystem.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.UUID;
 
@@ -25,7 +23,6 @@ import java.util.UUID;
 public class AuthController {
 
     private final AuthService authService;
-    private final OAuthTokenStore oAuthTokenStore;
 
     /**
      * POST /api/v1/auth/register
@@ -52,7 +49,8 @@ public class AuthController {
 
     /**
      * POST /api/v1/auth/set-password
-     * Account-linking flow — first-time password set for OAuth users.
+     * Account-linking flow — first-time password set for OAuth users (passwordSet=false).
+     * Blocked with 409 if the account already has a password set.
      * Requires Bearer token obtained via Google OAuth redirect + /oauth2/token exchange.
      */
     @PostMapping("/set-password")
@@ -66,8 +64,8 @@ public class AuthController {
 
     /**
      * POST /api/v1/auth/refresh
-     * FIX ISSUE-7: Exchanges a valid refresh token for a new access + refresh pair.
-     * Old refresh token is invalidated (rotation).
+     * Exchanges a valid refresh token for a new access + refresh pair (token rotation).
+     * Old refresh token is atomically invalidated to prevent replay attacks.
      */
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshRequest request) {
@@ -76,14 +74,24 @@ public class AuthController {
 
     /**
      * POST /api/v1/auth/oauth2/token
-     * FIX ISSUE-1: Exchanges the short-lived opaque OAuth code for the actual AuthResponse.
+     * Exchanges the short-lived opaque OAuth code for the actual AuthResponse.
      * The code is single-use and expires in 30 seconds.
+     * Returns 400 if the code is invalid or expired.
      */
     @PostMapping("/oauth2/token")
     public ResponseEntity<AuthResponse> exchangeOAuthCode(@Valid @RequestBody OAuthCodeRequest request) {
-        AuthResponse response = oAuthTokenStore.consume(request.getCode())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST, "Invalid or expired OAuth code"));
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(authService.exchangeOAuthCode(request));
+    }
+
+    /**
+     * POST /api/v1/auth/logout
+     * Revokes all refresh tokens for the authenticated user.
+     * The access token remains valid until its natural expiry (max 1 hour).
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        authService.logout(userId);
+        return ResponseEntity.noContent().build();
     }
 }

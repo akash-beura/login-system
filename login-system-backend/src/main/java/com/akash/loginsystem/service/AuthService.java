@@ -1,6 +1,7 @@
 package com.akash.loginsystem.service;
 
 import com.akash.loginsystem.dto.request.LoginRequest;
+import com.akash.loginsystem.dto.request.OAuthCodeRequest;
 import com.akash.loginsystem.dto.request.RefreshRequest;
 import com.akash.loginsystem.dto.request.RegisterRequest;
 import com.akash.loginsystem.dto.request.SetPasswordRequest;
@@ -22,7 +23,8 @@ public interface AuthService {
     AuthResponse login(LoginRequest request);
 
     /**
-     * Set password for the first time (account-linking flow).
+     * Account-linking flow: set password for the first time.
+     * Only valid when user.passwordSet=false. Throws PasswordAlreadySetException if already set.
      * Flips passwordSet=true. Requires authenticated user (Bearer token from OAuth redirect).
      */
     AuthResponse setPassword(UUID userId, SetPasswordRequest request);
@@ -38,4 +40,16 @@ public interface AuthService {
      * Throws InvalidCredentialsException if the token is unknown or expired.
      */
     AuthResponse refresh(RefreshRequest request);
+
+    /**
+     * Exchanges the one-time opaque OAuth2 code for the stored AuthResponse.
+     * Throws OAuthCodeExpiredException if the code is unknown, already consumed, or past its 30s TTL.
+     */
+    AuthResponse exchangeOAuthCode(OAuthCodeRequest request);
+
+    /**
+     * Invalidates all refresh tokens for the given user (logout / session termination).
+     * The access token remains valid until its natural expiry.
+     */
+    void logout(UUID userId);
 }

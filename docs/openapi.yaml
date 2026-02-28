@@ -1,0 +1,478 @@
+openapi: 3.0.3
+info:
+  title: Login System API
+  version: 1.0.0
+  description: |
+    REST API for the Login System — a Spring Boot backend supporting local
+    email/password authentication, Google OAuth2, JWT access tokens, and
+    opaque refresh tokens.
+
+    ## Authentication
+    Most endpoints are public. The `/auth/set-password` endpoint requires a
+    valid JWT Bearer token obtained from a prior login or OAuth2 flow.
+
+    ## Token Lifecycle
+    1. Register or login to receive an `accessToken` (short-lived JWT) and a
+       `refreshToken` (long-lived opaque UUID).
+    2. When the access token expires, call `/auth/refresh` with the refresh
+       token to obtain a new pair.
+    3. For Google OAuth2 users who have not yet set a password, the response
+       includes `requiresPasswordSet: true`. Redirect them to the set-password
+       flow and call `/auth/set-password` with the Bearer token.
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development server
+
+tags:
+  - name: Auth
+    description: Authentication and token management endpoints
+  - name: Health
+    description: Service health check
+
+paths:
+
+  /auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Register a new local user
+      description: |
+        Creates a new user account with email/password credentials.
+        Returns a JWT access token and refresh token on success.
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            example:
+              name: Jane Smith
+              email: jane@example.com
+              password: mypassword123
+              phoneCountryCode: "+1"
+              phoneNumber: "5551234567"
+              addressLine1: 123 Main St
+              city: Springfield
+              state: IL
+              zipCode: "62701"
+              country: United States
+      responses:
+        '200':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Validation error (missing or malformed fields)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "Validation failed: email must be a valid email address"
+        '409':
+          description: Email address is already registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: Email already registered
+
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Authenticate with email and password
+      description: |
+        Validates the provided credentials and returns a JWT access token and
+        refresh token. The user must have a password set (i.e. not a
+        Google-only account without a local password).
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: jane@example.com
+              password: mypassword123
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: Invalid credentials
+
+  /auth/refresh:
+    post:
+      tags:
+        - Auth
+      summary: Refresh an access token
+      description: |
+        Exchanges a valid, non-expired refresh token for a new JWT access token
+        and a new refresh token (token rotation). The old refresh token is
+        invalidated after this call.
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+            example:
+              refreshToken: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Refresh token is invalid or has expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: Refresh token is invalid or expired
+
+  /auth/set-password:
+    post:
+      tags:
+        - Auth
+      summary: Set or update the authenticated user's password
+      description: |
+        Allows an authenticated user (typically a Google OAuth2 user who has
+        not yet set a local password) to establish a password. Requires a
+        valid JWT Bearer token in the Authorization header.
+
+        Both `password` and `confirmPassword` must match.
+      operationId: setPassword
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetPasswordRequest'
+            example:
+              password: newpass123
+              confirmPassword: newpass123
+      responses:
+        '200':
+          description: Password set successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Passwords do not match or validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: Passwords do not match
+        '401':
+          description: Missing or invalid Bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: Unauthorized
+
+  /auth/oauth2/token:
+    post:
+      tags:
+        - Auth
+      summary: Exchange a one-time OAuth2 code for tokens
+      description: |
+        After a successful Google OAuth2 redirect, the frontend receives a
+        one-time opaque code from the backend's redirect handler. This endpoint
+        exchanges that short-lived code for a proper JWT access token and
+        refresh token.
+
+        If the Google account has no local password yet, `requiresPasswordSet`
+        will be `true` in the response.
+      operationId: oauthToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OAuthCodeRequest'
+            example:
+              code: "a1b2c3d4e5f6"
+      responses:
+        '200':
+          description: OAuth2 code exchanged successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Code is invalid or has already been used
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: Invalid or expired OAuth2 code
+
+  /actuator/health:
+    get:
+      tags:
+        - Health
+      summary: Service health check
+      description: Returns the current health status of the backend application.
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: UP
+              example:
+                status: UP
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT access token obtained from `/auth/login`, `/auth/register`, or
+        `/auth/oauth2/token`. Include it as `Authorization: Bearer <token>`.
+
+  schemas:
+
+    RegisterRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+      properties:
+        name:
+          type: string
+          description: Full name of the user. Must be non-blank.
+          example: Jane Smith
+        email:
+          type: string
+          format: email
+          description: Email address. Must be a valid email format and not already registered.
+          example: jane@example.com
+        password:
+          type: string
+          minLength: 8
+          description: Password. Minimum 8 characters.
+          example: mypassword123
+        phoneCountryCode:
+          type: string
+          nullable: true
+          description: International dialling code, e.g. +1.
+          example: "+1"
+        phoneNumber:
+          type: string
+          nullable: true
+          description: Local phone number digits (without country code).
+          example: "5551234567"
+        addressLine1:
+          type: string
+          nullable: true
+          description: Street address line 1.
+          example: 123 Main St
+        city:
+          type: string
+          nullable: true
+          description: City.
+          example: Springfield
+        state:
+          type: string
+          nullable: true
+          description: State or province abbreviation.
+          example: IL
+        zipCode:
+          type: string
+          nullable: true
+          description: Postal / ZIP code.
+          example: "62701"
+        country:
+          type: string
+          nullable: true
+          description: Country name.
+          example: United States
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: Registered email address.
+          example: jane@example.com
+        password:
+          type: string
+          description: Account password.
+          example: mypassword123
+
+    RefreshRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          description: Opaque refresh token UUID received from a prior auth response.
+          example: "550e8400-e29b-41d4-a716-446655440000"
+
+    SetPasswordRequest:
+      type: object
+      required:
+        - password
+        - confirmPassword
+      properties:
+        password:
+          type: string
+          minLength: 8
+          description: The new password. Minimum 8 characters.
+          example: newpass123
+        confirmPassword:
+          type: string
+          minLength: 8
+          description: Must exactly match `password`.
+          example: newpass123
+
+    OAuthCodeRequest:
+      type: object
+      required:
+        - code
+      properties:
+        code:
+          type: string
+          description: |
+            One-time opaque code issued by the backend after a successful
+            Google OAuth2 redirect. Short-lived and single-use.
+          example: "a1b2c3d4e5f6"
+
+    AuthResponse:
+      type: object
+      description: Returned by all successful authentication endpoints.
+      properties:
+        accessToken:
+          type: string
+          description: Short-lived JWT for authenticating subsequent API requests.
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1dWlkLWhlcmUifQ.signature"
+        refreshToken:
+          type: string
+          description: Long-lived opaque UUID for obtaining new access tokens.
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        requiresPasswordSet:
+          type: boolean
+          description: |
+            `true` when the user authenticated via Google OAuth2 and has not
+            yet set a local password. The frontend should redirect such users
+            to the set-password screen.
+          example: false
+        user:
+          $ref: '#/components/schemas/UserResponse'
+
+    UserResponse:
+      type: object
+      description: Profile information for the authenticated user.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique user identifier.
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        email:
+          type: string
+          format: email
+          description: User's email address.
+          example: jane@example.com
+        name:
+          type: string
+          description: User's display name.
+          example: Jane Smith
+        provider:
+          type: string
+          description: Authentication provider used to create the account.
+          enum:
+            - LOCAL
+            - GOOGLE
+          example: LOCAL
+        passwordSet:
+          type: boolean
+          description: Whether the user has a local password configured.
+          example: true
+        phoneCountryCode:
+          type: string
+          nullable: true
+          description: International dialling code.
+          example: "+1"
+        phoneNumber:
+          type: string
+          nullable: true
+          description: Local phone number digits.
+          example: "5551234567"
+        addressLine1:
+          type: string
+          nullable: true
+          description: Street address line 1.
+          example: 123 Main St
+        city:
+          type: string
+          nullable: true
+          description: City.
+          example: Springfield
+        state:
+          type: string
+          nullable: true
+          description: State or province abbreviation.
+          example: IL
+        zipCode:
+          type: string
+          nullable: true
+          description: Postal / ZIP code.
+          example: "62701"
+        country:
+          type: string
+          nullable: true
+          description: Country name.
+          example: United States
+
+    ErrorResponse:
+      type: object
+      description: Standard error payload returned for 4xx responses.
+      properties:
+        message:
+          type: string
+          description: Human-readable description of the error.
+          example: Invalid credentials

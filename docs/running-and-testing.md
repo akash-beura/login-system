@@ -101,8 +101,21 @@ Open http://localhost:3000 and test the full UI flow:
 ```bash
 curl -s -X POST http://localhost:8080/api/v1/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"name":"Test User","email":"test@example.com","password":"password123"}' | jq
+  -d '{
+    "name": "Test User",
+    "email": "test@example.com",
+    "password": "password123",
+    "phoneCountryCode": "+1",
+    "phoneNumber": "5551234567",
+    "addressLine1": "123 Main St",
+    "city": "Springfield",
+    "state": "IL",
+    "zipCode": "62701",
+    "country": "United States"
+  }' | jq
 ```
+> Required fields: `name`, `email`, `password`.
+> Optional fields: `phoneCountryCode`, `phoneNumber`, `addressLine1`, `city`, `state`, `zipCode`, `country`.
 
 **Login**
 ```bash

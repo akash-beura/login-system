@@ -1,0 +1,408 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Login System API",
+    "description": "Postman Collection v2.1 for the Login System REST API.\n\nAll auth endpoints live under the Auth folder.\n\nWorkflow:\n1. Call **Register** or **Login** to obtain tokens.\n2. Copy `accessToken` from the response into the `accessToken` collection variable.\n3. Copy `refreshToken` into the `refreshToken` collection variable.\n4. Use **Set Password** (Authorization header is pre-filled via `{{accessToken}}`). Only valid for OAuth users where `passwordSet=false`.\n5. When the access token expires, call **Refresh Token** to rotate both tokens.\n6. Call **Logout** to revoke the refresh token and end the session.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api/v1",
+      "type": "string",
+      "description": "Base URL for the Login System backend API."
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string",
+      "description": "JWT access token. Populate this after a successful login or register call."
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string",
+      "description": "Opaque refresh token UUID. Populate this after a successful login or register call."
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "description": "Authentication and token management endpoints.",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jane Smith\",\n  \"email\": \"jane@example.com\",\n  \"password\": \"mypassword123\",\n  \"phoneCountryCode\": \"+1\",\n  \"phoneNumber\": \"5551234567\",\n  \"addressLine1\": \"123 Main St\",\n  \"city\": \"Springfield\",\n  \"state\": \"IL\",\n  \"zipCode\": \"62701\",\n  \"country\": \"United States\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Create a new local user account.\n\nRequired fields: `name`, `email`, `password` (12–72 characters).\nOptional fields: `phoneCountryCode`, `phoneNumber`, `addressLine1`, `city`, `state`, `zipCode`, `country`.\n\nReturns 201 Created with an AuthResponse on success.\nReturns 409 if the email is already registered.\nReturns 400 if validation fails."
+          },
+          "response": [
+            {
+              "name": "201 Created - User registered",
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1dWlkLWhlcmUifQ.signature\",\n  \"refreshToken\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"requiresPasswordSet\": false,\n  \"user\": {\n    \"id\": \"123e4567-e89b-12d3-a456-426614174000\",\n    \"email\": \"jane@example.com\",\n    \"name\": \"Jane Smith\",\n    \"provider\": \"LOCAL\",\n    \"passwordSet\": true,\n    \"phoneCountryCode\": \"+1\",\n    \"phoneNumber\": \"5551234567\",\n    \"addressLine1\": \"123 Main St\",\n    \"city\": \"Springfield\",\n    \"state\": \"IL\",\n    \"zipCode\": \"62701\",\n    \"country\": \"United States\"\n  }\n}",
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "name": "409 Conflict - Email already registered",
+              "status": "Conflict",
+              "code": 409,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Email already registered\"\n}",
+              "_postman_previewlanguage": "json"
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"jane@example.com\",\n  \"password\": \"mypassword123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Authenticate with email and password.\n\nReturns 200 with an AuthResponse on success.\nReturns 401 if credentials are invalid."
+          },
+          "response": [
+            {
+              "name": "200 OK - Login successful",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1dWlkLWhlcmUifQ.signature\",\n  \"refreshToken\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"requiresPasswordSet\": false,\n  \"user\": {\n    \"id\": \"123e4567-e89b-12d3-a456-426614174000\",\n    \"email\": \"jane@example.com\",\n    \"name\": \"Jane Smith\",\n    \"provider\": \"LOCAL\",\n    \"passwordSet\": true,\n    \"phoneCountryCode\": \"+1\",\n    \"phoneNumber\": \"5551234567\",\n    \"addressLine1\": \"123 Main St\",\n    \"city\": \"Springfield\",\n    \"state\": \"IL\",\n    \"zipCode\": \"62701\",\n    \"country\": \"United States\"\n  }\n}",
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "name": "401 Unauthorized - Invalid credentials",
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Invalid credentials\"\n}",
+              "_postman_previewlanguage": "json"
+            }
+          ]
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Exchange a valid refresh token for a new JWT access token and refresh token (token rotation).\n\nSet the `refreshToken` collection variable before calling this request.\n\nReturns 200 with a new AuthResponse on success.\nReturns 401 if the token is invalid or expired."
+          },
+          "response": [
+            {
+              "name": "200 OK - Token refreshed",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1dWlkLWhlcmUifQ.new_signature\",\n  \"refreshToken\": \"660f9500-f30c-52e5-b827-557766551111\",\n  \"requiresPasswordSet\": false,\n  \"user\": {\n    \"id\": \"123e4567-e89b-12d3-a456-426614174000\",\n    \"email\": \"jane@example.com\",\n    \"name\": \"Jane Smith\",\n    \"provider\": \"LOCAL\",\n    \"passwordSet\": true,\n    \"phoneCountryCode\": \"+1\",\n    \"phoneNumber\": \"5551234567\",\n    \"addressLine1\": \"123 Main St\",\n    \"city\": \"Springfield\",\n    \"state\": \"IL\",\n    \"zipCode\": \"62701\",\n    \"country\": \"United States\"\n  }\n}",
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "name": "401 Unauthorized - Invalid or expired token",
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Refresh token is invalid or expired\"\n}",
+              "_postman_previewlanguage": "json"
+            }
+          ]
+        },
+        {
+          "name": "Set Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text",
+                "description": "JWT access token obtained from login, register, or oauth2/token."
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/set-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "set-password"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"newpass123\",\n  \"confirmPassword\": \"newpass123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Set or update the authenticated user's local password. Typically used after a Google OAuth2 login when `requiresPasswordSet` is `true`.\n\nRequires a valid JWT Bearer token in the Authorization header. Set the `accessToken` collection variable after login.\n\nReturns 200 with an updated AuthResponse on success.\nReturns 400 if passwords do not match.\nReturns 401 if the Bearer token is missing or invalid."
+          },
+          "response": [
+            {
+              "name": "200 OK - Password set",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1dWlkLWhlcmUifQ.signature\",\n  \"refreshToken\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"requiresPasswordSet\": false,\n  \"user\": {\n    \"id\": \"123e4567-e89b-12d3-a456-426614174000\",\n    \"email\": \"jane@example.com\",\n    \"name\": \"Jane Smith\",\n    \"provider\": \"GOOGLE\",\n    \"passwordSet\": true,\n    \"phoneCountryCode\": null,\n    \"phoneNumber\": null,\n    \"addressLine1\": null,\n    \"city\": null,\n    \"state\": null,\n    \"zipCode\": null,\n    \"country\": null\n  }\n}",
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "name": "400 Bad Request - Passwords do not match",
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Passwords do not match\"\n}",
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "name": "401 Unauthorized - Missing or invalid token",
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Unauthorized\"\n}",
+              "_postman_previewlanguage": "json"
+            }
+          ]
+        },
+        {
+          "name": "Exchange OAuth2 Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/oauth2/token",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "oauth2", "token"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"a1b2c3d4e5f6\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Exchange a one-time opaque code (issued by the backend after a successful Google OAuth2 redirect) for a JWT access token and refresh token.\n\nThe code is short-lived (30s) and single-use. If `requiresPasswordSet` is `true` in the response, the user has not yet set a local password and should be directed to the set-password screen.\n\nReturns 200 with an AuthResponse on success.\nReturns 400 if the code is invalid, already consumed, or expired."
+          },
+          "response": [
+            {
+              "name": "200 OK - Tokens issued",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1dWlkLWhlcmUifQ.signature\",\n  \"refreshToken\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"requiresPasswordSet\": true,\n  \"user\": {\n    \"id\": \"123e4567-e89b-12d3-a456-426614174000\",\n    \"email\": \"jane@example.com\",\n    \"name\": \"Jane Smith\",\n    \"provider\": \"GOOGLE\",\n    \"passwordSet\": false,\n    \"phoneCountryCode\": null,\n    \"phoneNumber\": null,\n    \"addressLine1\": null,\n    \"city\": null,\n    \"state\": null,\n    \"zipCode\": null,\n    \"country\": null\n  }\n}",
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "name": "400 Bad Request - Invalid or expired code",
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": 400,\n  \"message\": \"Invalid or expired OAuth2 code\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\",\n  \"errors\": null\n}",
+              "_postman_previewlanguage": "json"
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text",
+                "description": "JWT access token for the authenticated user."
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "Revokes all refresh tokens for the authenticated user, ending the session.\n\nThe JWT access token remains valid until its natural expiry (up to 1 hour). After logout, any attempt to use the revoked refresh token will return 401.\n\nReturns 204 No Content on success.\nReturns 401 if the Bearer token is missing or invalid."
+          },
+          "response": [
+            {
+              "name": "204 No Content - Logged out",
+              "status": "No Content",
+              "code": 204,
+              "header": [],
+              "body": "",
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "name": "401 Unauthorized - Missing or invalid token",
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": 401,\n  \"message\": \"Unauthorized\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\",\n  \"errors\": null\n}",
+              "_postman_previewlanguage": "json"
+            }
+          ]
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/actuator/health",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["actuator", "health"]
+            },
+            "description": "Spring Boot Actuator health endpoint. Returns the current health status of the backend service.\n\nNote: This endpoint is on port 8080 directly (not under /api/v1).\n\nReturns 200 with `{\"status\": \"UP\"}` when the service is healthy."
+          },
+          "response": [
+            {
+              "name": "200 OK - Service healthy",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": \"UP\"\n}",
+              "_postman_previewlanguage": "json"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
