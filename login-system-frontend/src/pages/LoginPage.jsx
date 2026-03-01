@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import authService from '../services/authService';
 import Input from '../components/common/Input';
@@ -11,12 +11,13 @@ const GOOGLE_OAUTH_URL = `${process.env.REACT_APP_API_URL?.replace('/api/v1', ''
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { login } = useAuth();
-
+  const { login, isAuthenticated } = useAuth();
   const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  if (isAuthenticated) return <Navigate to="/homepage" replace />;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -48,7 +49,7 @@ export default function LoginPage() {
         return;
       }
 
-      login(data.accessToken, data.user);
+      login(data.accessToken, data.user, data.refreshToken);
       navigate('/homepage');
     } catch (err) {
       const msg = err.response?.data?.message || 'Login failed. Please try again.';

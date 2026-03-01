@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import authService from '../services/authService';
 import AuthLayout from '../components/common/AuthLayout';
@@ -254,8 +254,7 @@ const COUNTRIES = [
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const { login } = useAuth();
-
+  const { login, isAuthenticated } = useAuth();
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -273,6 +272,8 @@ export default function RegisterPage() {
   const [apiError, setApiError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  if (isAuthenticated) return <Navigate to="/homepage" replace />;
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     // Phone number: digits only, max 10 characters
@@ -289,7 +290,7 @@ export default function RegisterPage() {
     if (!form.email) next.email = 'Email is required';
     else if (!/\S+@\S+\.\S+/.test(form.email)) next.email = 'Enter a valid email';
     if (!form.password) next.password = 'Password is required';
-    else if (form.password.length < 8) next.password = 'Password must be at least 8 characters';
+    else if (form.password.length < 12) next.password = 'Password must be at least 12 characters';
     if (!form.confirmPassword) next.confirmPassword = 'Please confirm your password';
     else if (form.confirmPassword !== form.password) next.confirmPassword = 'Passwords do not match';
     setErrors(next);
@@ -307,7 +308,7 @@ export default function RegisterPage() {
       // Strip confirmPassword — not part of the API contract
       const { confirmPassword: _, ...submitData } = form;
       const data = await authService.register(submitData);
-      login(data.accessToken, data.user);
+      login(data.accessToken, data.user, data.refreshToken);
       navigate('/homepage');
     } catch (err) {
       const msg = err.response?.data?.message || 'Registration failed. Please try again.';
@@ -356,7 +357,7 @@ export default function RegisterPage() {
           name="password"
           type="password"
           label="Password"
-          placeholder="Min. 8 characters"
+          placeholder="Min. 12 characters"
           value={form.password}
           onChange={handleChange}
           error={errors.password}

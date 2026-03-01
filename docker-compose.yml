@@ -21,6 +21,21 @@ services:
     networks:
       - internal
 
+  # ── Redis ────────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: loginsystem-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+
   # ── Spring Boot Backend ─────────────────────────────────────────────────────
   backend:
     build:
@@ -30,6 +45,8 @@ services:
     restart: unless-stopped
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
@@ -52,6 +69,11 @@ services:
 
       # Schema — use 'update' so Hibernate auto-creates tables on first run
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
 
       # URLs
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}

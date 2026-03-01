@@ -22,5 +22,5 @@ public class AuthResponse {
     @Builder.Default
     private boolean requiresPasswordSet = false;
 
-    private UserResponse user;
+    private UserSummaryResponse user;
 }

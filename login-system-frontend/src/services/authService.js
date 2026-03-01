@@ -55,6 +55,16 @@ const authService = {
     const { data } = await apiClient.post('/auth/oauth2/token', { code });
     return data;
   },
+
+  /**
+   * POST /auth/logout  (requires Bearer token)
+   * Revokes all refresh tokens for the authenticated user.
+   */
+  logout: async (accessToken) => {
+    await apiClient.post('/auth/logout', {}, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+  },
 };
 
 export default authService;

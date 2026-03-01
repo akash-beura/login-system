@@ -7,7 +7,7 @@ import com.akash.loginsystem.dto.request.RefreshRequest;
 import com.akash.loginsystem.dto.request.RegisterRequest;
 import com.akash.loginsystem.dto.request.SetPasswordRequest;
 import com.akash.loginsystem.dto.response.AuthResponse;
-import com.akash.loginsystem.dto.response.UserResponse;
+import com.akash.loginsystem.dto.response.UserSummaryResponse;
 import com.akash.loginsystem.entity.RefreshToken;
 import com.akash.loginsystem.entity.User;
 import com.akash.loginsystem.exception.InvalidCredentialsException;
@@ -98,7 +98,7 @@ public class AuthServiceImpl implements AuthService {
             log.info("Email login blocked for OAuth-only account: {}", user.getEmail());
             return AuthResponse.builder()
                     .requiresPasswordSet(true)
-                    .user(UserResponse.from(user))
+                    .user(UserSummaryResponse.from(user))
                     .build();
         }
 
@@ -242,7 +242,7 @@ public class AuthServiceImpl implements AuthService {
                 .accessToken(accessToken)
                 .refreshToken(refreshTokenValue)
                 .requiresPasswordSet(!user.isPasswordSet())
-                .user(UserResponse.from(user))
+                .user(UserSummaryResponse.from(user))
                 .build();
     }
 }

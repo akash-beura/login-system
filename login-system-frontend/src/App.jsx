@@ -3,13 +3,18 @@ import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import ThemeToggle from './components/common/ThemeToggle';
 import ProtectedRoute from './routes/ProtectedRoute';
-
+import { useAuth } from './hooks/useAuth';
 import LoginPage            from './pages/LoginPage';
 import RegisterPage         from './pages/RegisterPage';
 import SetPasswordPage      from './pages/SetPasswordPage';
 import SetPasswordPromptPage from './pages/SetPasswordPromptPage';
 import OAuthCallbackPage    from './pages/OAuthCallbackPage';
 import HomePage             from './pages/HomePage';
+
+function NotFoundRedirect() {
+  const { isAuthenticated } = useAuth();
+  return <Navigate to={isAuthenticated ? '/homepage' : '/login'} replace />;
+}
 
 export default function App() {
   return (
@@ -51,7 +56,7 @@ export default function App() {
 
           {/* Default redirect */}
           <Route path="/"  element={<Navigate to="/login" replace />} />
-          <Route path="*"  element={<Navigate to="/login" replace />} />
+          <Route path="*"  element={<NotFoundRedirect />} />
         </Routes>
       </BrowserRouter>
       </AuthProvider>

@@ -33,7 +33,7 @@ export default function OAuthCallbackPage() {
 
     authService.exchangeOAuthCode(code)
       .then((data) => {
-        login(data.accessToken, data.user);
+        login(data.accessToken, data.user, data.refreshToken);
         if (data.requiresPasswordSet) {
           navigate('/set-password');
         } else {

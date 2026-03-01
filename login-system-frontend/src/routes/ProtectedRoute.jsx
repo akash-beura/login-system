@@ -3,11 +3,14 @@ import { useAuth } from '../hooks/useAuth';
 
 /**
  * Wraps routes that require authentication.
- * Saves the attempted URL so we can redirect back after login.
+ * Waits for session restore (initialized) before deciding — prevents
+ * a redirect to /login while a stored refresh token is being validated.
  */
 export default function ProtectedRoute({ children }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, initialized } = useAuth();
   const location = useLocation();
+
+  if (!initialized) return null;
 
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;

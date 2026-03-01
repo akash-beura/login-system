@@ -31,7 +31,7 @@ export default function SetPasswordPage() {
   const validate = () => {
     const next = {};
     if (!form.password) next.password = 'Password is required';
-    else if (form.password.length < 8) next.password = 'Password must be at least 8 characters';
+    else if (form.password.length < 12) next.password = 'Password must be at least 12 characters';
     if (!form.confirmPassword) next.confirmPassword = 'Please confirm your password';
     else if (form.password !== form.confirmPassword) next.confirmPassword = 'Passwords do not match';
     setErrors(next);
@@ -51,7 +51,7 @@ export default function SetPasswordPage() {
         form.confirmPassword,
         accessToken
       );
-      login(data.accessToken, data.user);
+      login(data.accessToken, data.user, data.refreshToken);
       navigate('/homepage');
     } catch (err) {
       const msg = err.response?.data?.message || 'Failed to set password. Please try again.';
@@ -78,7 +78,7 @@ export default function SetPasswordPage() {
           name="password"
           type="password"
           label="New password"
-          placeholder="Min. 8 characters"
+          placeholder="Min. 12 characters"
           value={form.password}
           onChange={handleChange}
           error={errors.password}
