@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../hooks/useAuth';
-import userService from '../services/userService';
-import Input from '../components/common/Input';
-import Button from '../components/common/Button';
-import ErrorBanner from '../components/common/ErrorBanner';
+import { useAuth } from '../../hooks/useAuth';
+import userService from '../../services/userService';
+import Input from '../../components/common/Input';
+import Button from '../../components/common/Button';
+import ErrorBanner from '../../components/common/ErrorBanner';
 import styles from './AccountSettingsPage.module.css';
 
 const PHONE_CODES = [

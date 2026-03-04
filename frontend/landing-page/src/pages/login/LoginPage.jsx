@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import authService from '../../services/authService';
-import Input from '../../components/common/input/Input';
-import Button from '../../components/common/button/Button';
-import ErrorBanner from '../../components/common/error-banner/ErrorBanner';
+import Input from '../../components/common/Input';
+import Button from '../../components/common/Button';
+import ErrorBanner from '../../components/common/ErrorBanner';
 import styles from './LoginPage.module.css';
 
 const GOOGLE_OAUTH_URL = `${process.env.REACT_APP_API_URL?.replace('/api/v1', '')}/oauth2/authorization/google`;

@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import authService from '../../services/authService';
-import AuthLayout from '../../components/common/auth-layout/AuthLayout';
-import Input from '../../components/common/input/Input';
-import Button from '../../components/common/button/Button';
-import ErrorBanner from '../../components/common/error-banner/ErrorBanner';
+import AuthLayout from '../../components/common/AuthLayout';
+import Input from '../../components/common/Input';
+import Button from '../../components/common/Button';
+import ErrorBanner from '../../components/common/ErrorBanner';
 import styles from '../../styles/AuthPage.module.css';
 
 export default function SetPasswordPage() {

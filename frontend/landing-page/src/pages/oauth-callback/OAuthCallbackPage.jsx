@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import authService from '../../services/authService';
-import AuthLayout from '../../components/common/auth-layout/AuthLayout';
+import AuthLayout from '../../components/common/AuthLayout';
 import styles from './OAuthCallbackPage.module.css';
 
 export default function OAuthCallbackPage() {

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
-import AuthLayout from '../../components/common/auth-layout/AuthLayout';
-import Button from '../../components/common/button/Button';
+import AuthLayout from '../../components/common/AuthLayout';
+import Button from '../../components/common/Button';
 import styles from '../../styles/AuthPage.module.css';
 import promptStyles from './SetPasswordPromptPage.module.css';
 
