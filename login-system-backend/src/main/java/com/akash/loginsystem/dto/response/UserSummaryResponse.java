@@ -18,7 +18,8 @@ public record UserSummaryResponse(
     String email,
     String name,
     AuthProvider provider,
-    boolean passwordSet
+    boolean passwordSet,
+    String pictureUrl
 ) {
     public static UserSummaryResponse from(User user) {
         return new UserSummaryResponse(
@@ -26,7 +27,8 @@ public record UserSummaryResponse(
             user.getEmail(),
             user.getName(),
             user.getProvider(),
-            user.isPasswordSet()
+            user.isPasswordSet(),
+            user.getPictureUrl()
         );
     }
 }

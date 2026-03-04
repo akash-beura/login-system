@@ -1,0 +1,40 @@
+.wideCard { max-width: 560px; }
+.scrollPage { align-items: flex-start; padding: var(--space-xl) var(--space-md); }
+.form { gap: 12px; }
+
+.phoneRow { display: flex; gap: var(--space-sm); align-items: flex-start; }
+
+.phoneSelect {
+  width: 165px; flex-shrink: 0; padding: 10px 10px;
+  background-color: var(--input-bg); border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-input); font-family: var(--font-family);
+  font-size: var(--font-sm); color: var(--text-primary); outline: none; cursor: pointer;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.15s ease;
+  appearance: auto;
+}
+.phoneSelect:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px var(--focus-ring); }
+
+.phoneNumberWrapper { flex: 1; min-width: 0; }
+
+.twoCol { display: flex; gap: var(--space-sm); }
+.twoCol > * { flex: 1; min-width: 0; }
+
+.sectionLabel {
+  font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);
+  margin-top: var(--space-xs); margin-bottom: -2px;
+  letter-spacing: 0.06em; text-transform: uppercase; transition: color 0.3s ease;
+}
+
+.countrySelect {
+  width: 100%; padding: 10px 12px; background-color: var(--input-bg);
+  border: 1.5px solid var(--border-color); border-radius: var(--radius-input);
+  font-family: var(--font-family); font-size: var(--font-base); color: var(--text-primary);
+  outline: none; cursor: pointer;
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.15s ease;
+  appearance: auto;
+}
+.countrySelect:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px var(--focus-ring); }
+
+.selectField { display: flex; flex-direction: column; gap: 6px; }
+.selectLabel { font-size: var(--font-sm); font-weight: 500; color: var(--text-primary); transition: color 0.3s ease; }

@@ -16,6 +16,7 @@ public class UserResponse {
     private String name;
     private AuthProvider provider;
     private boolean passwordSet;
+    private String pictureUrl;
     private String phoneCountryCode;
     private String phoneNumber;
     private String addressLine1;
@@ -31,6 +32,7 @@ public class UserResponse {
                 .name(user.getName())
                 .provider(user.getProvider())
                 .passwordSet(user.isPasswordSet())
+                .pictureUrl(user.getPictureUrl())
                 .phoneCountryCode(user.getPhoneCountryCode())
                 .phoneNumber(user.getPhoneNumber())
                 .addressLine1(user.getAddressLine1())

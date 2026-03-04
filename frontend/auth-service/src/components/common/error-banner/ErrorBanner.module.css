@@ -1,0 +1,9 @@
+.banner {
+  background-color: var(--color-error-bg);
+  color: var(--color-error);
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-input);
+  padding: 10px 12px;
+  font-size: var(--font-sm);
+  text-align: center;
+}

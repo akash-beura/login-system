@@ -90,18 +90,51 @@ services:
       - internal
       - external
 
-  # ── React Frontend ──────────────────────────────────────────────────────────
-  frontend:
+  # ── Auth Service (MF) ────────────────────────────────────────────────────────
+  # Must build BEFORE landing-page — landing-page bakes remote URLs at build time.
+  auth-service:
     build:
-      context: ./login-system-frontend
+      context: ./frontend/auth-service
       dockerfile: Dockerfile
       args:
         REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:8080/api/v1}
-    container_name: loginsystem-frontend
+    container_name: loginsystem-auth-service
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    networks:
+      - external
+
+  # ── Account Settings (MF) ────────────────────────────────────────────────────
+  account-settings:
+    build:
+      context: ./frontend/account-settings
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:8080/api/v1}
+    container_name: loginsystem-account-settings
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    networks:
+      - external
+
+  # ── React Landing Page (MF host) ────────────────────────────────────────────
+  landing-page:
+    build:
+      context: ./frontend/landing-page
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:8080/api/v1}
+    container_name: loginsystem-landing-page
     restart: unless-stopped
     depends_on:
       backend:
         condition: service_healthy
+      auth-service:
+        condition: service_started
+      account-settings:
+        condition: service_started
     ports:
       - "3000:3000"
     networks:

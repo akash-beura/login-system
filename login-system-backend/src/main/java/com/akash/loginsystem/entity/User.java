@@ -42,6 +42,10 @@ public class User {
     @Column
     private String providerId;
 
+    /** Google profile picture URL — null for LOCAL users or when unavailable. */
+    @Column
+    private String pictureUrl;
+
     /**
      * False for users who registered via OAuth and have not yet set a password.
      * Drives the account-linking flow on first email login.

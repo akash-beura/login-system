@@ -36,8 +36,9 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
 
         // S-4: Guard against Google returning null claims (unverified or restricted accounts)
         String rawEmail = oAuth2User.getAttribute("email");
-        String name     = oAuth2User.getAttribute("name");
+        String name       = oAuth2User.getAttribute("name");
         String providerId = oAuth2User.getAttribute("sub");
+        String pictureUrl = oAuth2User.getAttribute("picture");
 
         // H-3: Normalize email to lowercase for consistent account matching across providers
         String email = (rawEmail != null) ? rawEmail.toLowerCase(Locale.ROOT) : null;
@@ -52,32 +53,41 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         String resolvedName = (name != null) ? name : email;
 
         User user = userRepository.findByEmail(email)
-                .map(existing -> linkGoogleAccount(existing, providerId))
-                .orElseGet(() -> createGoogleUser(email, resolvedName, providerId));
+                .map(existing -> linkGoogleAccount(existing, providerId, pictureUrl))
+                .orElseGet(() -> createGoogleUser(email, resolvedName, providerId, pictureUrl));
 
         return new OAuth2UserPrincipal(user, oAuth2User.getAttributes());
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
 
-    /** Existing user (LOCAL or previous OAuth) — attach Google sub if missing. */
-    private User linkGoogleAccount(User user, String providerId) {
+    /** Existing user (LOCAL or previous OAuth) — attach Google sub and picture if missing. */
+    private User linkGoogleAccount(User user, String providerId, String pictureUrl) {
+        boolean changed = false;
         if (user.getProviderId() == null) {
             user.setProviderId(providerId);
             // Do NOT overwrite provider — preserve LOCAL so password login still works.
-            log.info("Linked Google account to existing user: {}", user.getEmail());
+            changed = true;
+        }
+        if (pictureUrl != null && !pictureUrl.equals(user.getPictureUrl())) {
+            user.setPictureUrl(pictureUrl);
+            changed = true;
+        }
+        if (changed) {
+            log.info("Linked/updated Google account for user: {}", user.getEmail());
             userRepository.save(user);
         }
         return user;
     }
 
     /** Brand-new user arriving via Google — password is null, passwordSet=false. */
-    private User createGoogleUser(String email, String name, String providerId) {
+    private User createGoogleUser(String email, String name, String providerId, String pictureUrl) {
         User newUser = User.builder()
                 .email(email)
                 .name(name)
                 .provider(AuthProvider.GOOGLE)
                 .providerId(providerId)
+                .pictureUrl(pictureUrl)
                 .password(null)
                 .passwordSet(false)
                 .build();
