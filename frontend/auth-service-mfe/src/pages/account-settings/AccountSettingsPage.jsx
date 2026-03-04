@@ -96,7 +96,7 @@ export default function AccountSettingsPage() {
             )}
             <div className={styles.avatarInfo}>
               <strong>{user?.name}</strong>
-              <span>{user?.email} {isGoogle && '(Google)'}</span>
+              <span>{user?.email}</span>
               <span style={{ marginTop: '2px', fontSize: '0.75rem', opacity: 0.7 }}>
                 {isGoogle ? 'Google account' : 'Email account'}
               </span>
