@@ -40,7 +40,7 @@ export default function SetPasswordPage() {
     setApiError('');
     try {
       const data = await authService.setPassword(form.password, form.confirmPassword, form.phoneCountryCode, form.phoneNumber, accessToken);
-      login(data.accessToken, data.user, data.refreshToken);
+      login(data.accessToken, data.user);
       navigate('/homepage');
     } catch (err) {
       setApiError(err.response?.data?.message || 'Failed to set password. Please try again.');

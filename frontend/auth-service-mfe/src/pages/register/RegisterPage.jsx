@@ -96,7 +96,7 @@ export default function RegisterPage() {
     try {
       const { confirmPassword: _, ...submitData } = form;
       const data = await authService.register(submitData);
-      login(data.accessToken, data.user, data.refreshToken);
+      login(data.accessToken, data.user);
       navigate('/homepage');
     } catch (err) {
       setApiError(err.response?.data?.message || 'Registration failed. Please try again.');

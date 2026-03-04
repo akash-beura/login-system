@@ -42,7 +42,7 @@ export default function LoginPage() {
     try {
       const data = await authService.login(form.email, form.password);
       if (data.requiresPasswordSet) { navigate('/set-password-prompt'); return; }
-      login(data.accessToken, data.user, data.refreshToken);
+      login(data.accessToken, data.user);
       navigate('/homepage');
     } catch (err) {
       setApiError(err.response?.data?.message || 'Login failed. Please try again.');
