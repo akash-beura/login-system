@@ -59,14 +59,16 @@ The application consists of **3 services** that run together:
 
 ```
 login-system/
-├── login-system-backend/
-│   ├── Dockerfile              # Builds the backend image
-│   └── src/...
-├── login-system-frontend/
-│   ├── Dockerfile              # Builds the frontend image
-│   ├── nginx.conf              # Nginx config for serving React
-│   └── src/...
-├── docker-compose.yml          # Orchestrates all 3 services
+├── backend/
+│   └── auth-service/
+│       ├── Dockerfile              # Builds the backend image
+│       └── src/...
+├── frontend/
+│   └── auth-service-mfe/
+│       ├── Dockerfile              # Builds the frontend image
+│       ├── nginx.conf              # Nginx config for serving React
+│       └── src/...
+├── docker-compose.yml          # Orchestrates all services
 ├── .env.example                # Template for required env vars
 └── .env                        # ⚠️ Local secrets — NOT in Git
 ```
@@ -149,7 +151,7 @@ services:
       retries: 5
 
   backend:
-    build: ./login-system-backend
+    build: ./backend/auth-service
     container_name: login-backend
     restart: unless-stopped
     depends_on:
@@ -168,7 +170,7 @@ services:
       - "8080:8080"
 
   frontend:
-    build: ./login-system-frontend
+    build: ./frontend/auth-service-mfe
     container_name: login-frontend
     restart: unless-stopped
     depends_on:

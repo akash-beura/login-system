@@ -30,7 +30,7 @@ http://localhost:8080/login/oauth2/code/google
 
 ### 3. Build the backend JAR
 ```bash
-cd login-system-backend
+cd backend/auth-service
 mvn clean install -DskipTests
 cd ..
 ```
@@ -142,7 +142,7 @@ curl -s -X POST http://localhost:8080/api/v1/auth/refresh \
 ## After Backend Code Changes
 
 ```bash
-cd login-system-backend
+cd backend/auth-service
 mvn clean install -DskipTests
 cd ..
 docker compose up --build

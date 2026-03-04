@@ -4,8 +4,8 @@
 .env.*.local
 
 # ─── Backend (Spring Boot / Maven) ──────────────────────────
-login-system-backend/target/
-login-system-backend/.mvn/
+backend/auth-service/target/
+backend/auth-service/.mvn/
 *.jar
 *.class
 

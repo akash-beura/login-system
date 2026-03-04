@@ -55,7 +55,7 @@ This is the **backend service** for a Login System that supports:
 ## 3. Project Structure
 
 ```
-login-system-backend/
+backend/auth-service/
 ├── src/
 │   └── main/
 │       ├── java/com/akash/loginsystem/
@@ -671,7 +671,7 @@ The backend will be available at `http://localhost:8080`.
 1. Set your environment variables (see Section 9 above) or create an `.env` file.
 2. Navigate into the backend directory:
    ```bash
-   cd login-system-backend
+   cd backend/auth-service
    ```
 3. Run the app:
    ```bash

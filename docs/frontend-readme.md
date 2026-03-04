@@ -49,7 +49,7 @@ This is the **React frontend** for the Login System. It provides:
 ## 3. Project Structure
 
 ```
-login-system-frontend/
+frontend/auth-service-mfe/
 ├── public/
 │   └── index.html
 └── src/
@@ -197,7 +197,7 @@ The UI is inspired by clean, modern login forms (think Instagram/Notion style).
 
 ## 9. Environment Variables
 
-Create a `.env` file in the `login-system-frontend/` root:
+Create a `.env` file in the `frontend/auth-service-mfe/` root:
 
 ```env
 REACT_APP_API_URL=http://localhost:8080
@@ -220,7 +220,7 @@ The frontend will be available at `http://localhost:3000`.
 **Prerequisites:** Node.js 18+, npm
 
 ```bash
-cd login-system-frontend
+cd frontend/auth-service-mfe
 npm install
 npm start
 ```

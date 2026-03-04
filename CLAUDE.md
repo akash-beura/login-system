@@ -10,8 +10,8 @@ The `.claude` directory contains the core configuration:
 - **Rules**: Token optimization and coding standards defined in `rules.md`.
 
 ## 🛠 Project Structure
-- `login-system-backend`: Spring Boot 3.x
-- `login-system-frontend`: React
+- `backend/auth-service`: Spring Boot 3.x (auth, OAuth, JWT)
+- `frontend/auth-service-mfe`: React (login, register, account settings)
 
 ## Workflow Orchestration
 
@@ -55,8 +55,8 @@ The `.claude` directory contains the core configuration:
 - Go fix failing CI tests without being told how
 
 ## 🚀 Key Build Commands
-- **Backend Build**: `mvn clean install` (in `login-system-backend`)
-- **Frontend Start**: `npm start` (in `login-system-frontend`)
+- **Backend Build**: `mvn clean install` (in `backend/auth-service`)
+- **Frontend Start**: `npm start` (in `frontend/auth-service-mfe`)
 
 ## Task Management
 1. **Plan First**: Write plan to `tasks/todo.md` with checkable items

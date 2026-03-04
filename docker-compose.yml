@@ -39,7 +39,7 @@ services:
   # ── Spring Boot Backend ─────────────────────────────────────────────────────
   backend:
     build:
-      context: ./login-system-backend
+      context: ./backend/auth-service
       dockerfile: Dockerfile
     container_name: loginsystem-backend
     restart: unless-stopped
@@ -93,7 +93,7 @@ services:
   # ── React Frontend (Monorepo) ──────────────────────────────────────────────────
   frontend:
     build:
-      context: ./frontend/resume-builder-front-end
+      context: ./frontend/auth-service-mfe
       dockerfile: Dockerfile
       args:
         REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:8080/api/v1}
