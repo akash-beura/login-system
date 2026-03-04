@@ -55,7 +55,7 @@ This is the **backend service** for a Login System that supports:
 ## 3. Project Structure
 
 ```
-login-system-backend/
+backend/auth-service/
 ├── src/
 │   └── main/
 │       ├── java/com/akash/loginsystem/
@@ -81,18 +81,28 @@ login-system-backend/
 
 ## 4. Core Concepts
 
-### 4.1 Two-Token Authentication
+### 4.1 Two-Token Authentication with httpOnly Cookies
 
 The server issues **two tokens** on every successful login:
 
-| Token | Type | Lifetime | Stored Where |
+| Token | Type | Lifetime | Storage Strategy |
 |---|---|---|---|
-| **Access Token** | JWT (signed) | Short (e.g. 1 hour) | Client memory / local storage |
-| **Refresh Token** | Opaque UUID | Long (e.g. 30 days) | Server database + client |
+| **Access Token** | JWT (signed) | Short (e.g. 1 hour) | Client memory (never persisted) |
+| **Refresh Token** | Opaque UUID | Long (e.g. 7 days) | HttpOnly cookie (server-managed, browser-sent automatically) |
 
-- The **access token** is sent with every API request as a `Bearer` header.
-- When it expires, the client uses the **refresh token** to silently get a new pair — without asking the user to log in again.
-- The server **only stores the refresh token** — no session state is kept for access tokens.
+- The **access token** is sent with every API request as a `Bearer` header. It's kept in memory and discarded on page reload.
+- When it expires, the client calls `POST /auth/refresh`; the browser automatically sends the **refresh token cookie** (no explicit parameter needed).
+- The server validates the cookie, atomically rotates the token, and returns a new access token + cookie pair.
+- The **refresh token is never visible to JavaScript** — it's stored in an HttpOnly, Secure, SameSite=Strict cookie, protecting against XSS attacks.
+
+#### Why httpOnly Cookies?
+
+| Benefit | Why it matters |
+|---|---|
+| **XSS Protection** | Malicious JavaScript cannot steal the refresh token via `document.cookie` |
+| **CSRF Protection** | SameSite=Strict ensures the cookie is only sent to same-site requests |
+| **Automatic Handling** | Browser sends the cookie with every request; no explicit code needed |
+| **Transparent Rotation** | Token rotation happens server-side; frontend just calls refresh and gets a new pair |
 
 ### 4.2 Single Active Session
 
@@ -117,6 +127,36 @@ After a Google login, tokens are **never placed in the redirect URL** (which wou
 1. The backend stores the tokens in an in-memory `OAuthTokenStore` keyed by a short-lived opaque code (30-second TTL).
 2. The redirect URL carries only that opaque code: `/oauth/callback?code=<opaque>`.
 3. The frontend exchanges the code for the real tokens via `POST /auth/oauth2/token`.
+
+### 4.6 HttpOnly Cookie Implementation
+
+**Phase 2 Update:** Refresh tokens are now stored and transmitted via HttpOnly cookies.
+
+**Cookie Attributes:**
+- `HttpOnly` — JavaScript cannot access via `document.cookie` (prevents XSS theft)
+- `Secure` — Only sent over HTTPS (prevents man-in-the-middle interception)
+- `SameSite=Strict` — Only sent to same-site requests (prevents CSRF attacks)
+- `Path=/api/v1/auth/refresh` — Only sent to the refresh endpoint
+- `Max-Age=604800` — 7-day expiry (matches refresh token TTL)
+
+**Request/Response Flow:**
+```
+POST /auth/login
+├─ Client sends: { email, password }
+├─ Server validates credentials
+├─ Server generates: accessToken (JWT) + refreshToken (UUID)
+├─ Server sends: { accessToken, user: {...} }
+│              + Set-Cookie: refreshToken=<uuid>; HttpOnly; Secure; SameSite=Strict; ...
+└─ Browser stores cookie automatically
+
+POST /auth/refresh
+├─ Client sends: (no body; browser sends cookie automatically)
+├─ Server reads: Cookie: refreshToken=<uuid>
+├─ Server validates + rotates token
+├─ Server sends: { accessToken, user: {...} }
+│              + Set-Cookie: refreshToken=<new-uuid>; HttpOnly; Secure; SameSite=Strict; ...
+└─ Browser updates cookie
+```
 
 ---
 
@@ -450,24 +490,30 @@ Set a password for an OAuth user completing account linking. **Requires a valid 
 ### `POST /auth/refresh`
 Exchange a valid refresh token for a new access + refresh token pair. The old refresh token is **atomically invalidated** (token rotation).
 
-**Request Body:**
-```json
-{
-  "refreshToken": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
-}
-```
+**Request (Phase 2 Update):**
+- **No request body required**
+- The refresh token is read from the **HttpOnly cookie** automatically
+- Browser sends: `Cookie: refreshToken=<uuid>`
 
 **Response (200 OK):**
 ```json
 {
   "accessToken": "eyJhbGciOiJIUzI1NiJ9...",
-  "refreshToken": "new-uuid-here",
   "requiresPasswordSet": false,
   "user": { ... }
 }
 ```
+Response headers include:
+```
+Set-Cookie: refreshToken=<new-uuid>; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth/refresh; Max-Age=604800
+```
 
 **Error (401 Unauthorized):** Refresh token not found, expired, or already consumed.
+
+**Browser Handling:**
+- The browser automatically stores the `Set-Cookie` response.
+- On the next `/auth/refresh` call, the browser sends the new cookie.
+- No JavaScript interaction required.
 
 ---
 
@@ -566,6 +612,27 @@ Get the currently authenticated user's full profile.
 
 ## 8. Security Architecture
 
+### CORS Configuration (Phase 2 Update)
+
+Since refresh tokens are now sent via cookies, **CORS must be configured with credentials support**:
+
+```properties
+# In SecurityConfig.java or application.yml
+CORS configuration:
+  allowOrigins: [http://localhost:3000, https://yourdomain.com]
+  allowCredentials: true          # ← REQUIRED for cookies to work across origins
+  allowedMethods: [GET, POST]
+  allowedHeaders: [Content-Type, Authorization]
+  exposedHeaders: []
+  maxAge: 3600
+```
+
+This allows the browser to:
+1. Send the refresh token cookie with cross-origin requests to the backend
+2. Store and manage the httpOnly cookie securely
+
+Without `allowCredentials=true`, the browser will **reject** the `Set-Cookie` header.
+
 ### How JWT Works Here
 
 1. User logs in → `AuthService` verifies credentials.
@@ -587,6 +654,10 @@ Get the currently authenticated user's full profile.
 ```
 Incoming Request
     ↓
+Browser (Phase 2)
+  → Automatically includes: Cookie: refreshToken=<uuid> (if calling /refresh)
+  → Includes: Authorization: Bearer <accessToken> (if in memory)
+    ↓
 JwtAuthFilter
   → Extracts "Bearer <token>" from Authorization header
   → Validates signature + expiry via JwtProvider
@@ -597,9 +668,13 @@ Spring Security
   → Checks if endpoint requires authentication
   → Checks role-based access if applicable
     ↓
-Controller → Service → Repository → Database
+Controller (reads HttpOnly cookie if needed via @CookieValue)
+  → Service → Repository → Database
     ↓
-Response
+Response (may include Set-Cookie header for Phase 2 cookie rotation)
+    ↓
+Browser
+  → Updates httpOnly cookie if Set-Cookie header present
 ```
 
 ### Permitted Endpoints (No token required)
@@ -671,7 +746,7 @@ The backend will be available at `http://localhost:8080`.
 1. Set your environment variables (see Section 9 above) or create an `.env` file.
 2. Navigate into the backend directory:
    ```bash
-   cd login-system-backend
+   cd backend/auth-service
    ```
 3. Run the app:
    ```bash
@@ -709,9 +784,9 @@ curl http://localhost:8080/actuator/health
 
 | Phase | Feature | Status |
 |---|---|---|
-| Phase 1 | Email/Password Auth, Google OAuth, JWT, Docker | ✅ Done |
-| Phase 2 | Refresh Token rotation, Logout endpoint | ✅ Done |
-| Phase 3 | Rate limiting (brute force protection) | 🔜 Planned |
+| Phase 1 | Email/Password Auth, Google OAuth, JWT, Docker, BroadcastChannel multi-tab sync | ✅ Done |
+| Phase 2 | Refresh Token rotation, Logout endpoint, HttpOnly cookies | ✅ Done |
+| Phase 3 | Rate limiting (brute force protection), Access token blacklist | 🔜 Planned |
 | Phase 4 | Migrate to Kubernetes (K8s) on GCP with Argo CD | 🔜 Planned |
 
 ---

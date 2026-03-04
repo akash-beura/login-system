@@ -274,7 +274,7 @@ Rules:
 
 **Prompt:**
 ```
-As the `frontend-dev`, scaffold the login-system-frontend React application.
+As the `frontend-dev`, scaffold the auth-service-mfe React application.
 
 Refer to `.claude/skills/react-ui-guidelines.md` for design rules.
 
@@ -326,9 +326,9 @@ Services:
 - frontend (React + Nginx, port 80 → external 3000)
 
 Create:
-1. login-system-backend/Dockerfile — multi-stage: maven:3.9 to build, eclipse-temurin:17-jre-alpine to run
-2. login-system-frontend/Dockerfile — multi-stage: node:18-alpine to build, nginx:1.25-alpine to serve
-3. login-system-frontend/nginx.conf — serve React, redirect all paths to index.html for client-side routing
+1. backend/auth-service/Dockerfile — multi-stage: maven:3.9 to build, eclipse-temurin:17-jre-alpine to run
+2. frontend/auth-service-mfe/Dockerfile — multi-stage: node:18-alpine to build, nginx:1.25-alpine to serve
+3. frontend/auth-service-mfe/nginx.conf — serve React, redirect all paths to index.html for client-side routing
 4. docker-compose.yml — all 3 services, depends_on with healthcheck, all env vars from .env
 5. .env.example — template with placeholder values for: DB_NAME, DB_USERNAME, DB_PASSWORD, JWT_SECRET, JWT_EXPIRY_MS, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, FRONTEND_URL, REACT_APP_API_URL
 
