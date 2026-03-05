@@ -16,8 +16,8 @@ Design backend structure only. No implementation.
 - login-system
 
 ## Sub Projects
-- login-system-backend
-- frontend/landing-page
+- backend/auth-service
+- frontend/auth-service-mfe
 
 ## Group name
 - com.akash

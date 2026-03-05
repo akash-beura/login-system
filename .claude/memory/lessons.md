@@ -13,6 +13,13 @@ Update this file after any user correction or unexpected failure.
 
 ---
 
+### 2026-03-05 — Never trust memory files over filesystem verification
+**What happened**: MEMORY.md had stale paths (`login-system-backend/`, `frontend/landing-page/`). I "fixed" CLAUDE.md to match the stale memory instead of verifying against the actual filesystem. The real paths are `backend/auth-service/` and `frontend/auth-service-mfe/`.
+**Root cause**: Used memory as source of truth without running `ls` to verify.
+**Rule going forward**: Before changing any path reference, ALWAYS `ls` the actual directory first. Memory files can be stale — the filesystem doesn't lie.
+
+---
+
 ## ARM64 Docker
 **Rule**: Use `eclipse-temurin:17-jre` (not `-alpine`) for ARM64. Use `maven:3.9-eclipse-temurin-17` for builds.
 Use `groupadd -r spring && useradd -r -g spring spring` (Debian syntax, not Alpine adduser).

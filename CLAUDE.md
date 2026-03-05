@@ -10,8 +10,8 @@ The `.claude` directory contains the core configuration:
 - **Rules**: Coding standards defined in `rules.md`.
 
 ## 🛠 Project Structure
-- `login-system-backend/`: Spring Boot 3.x (auth, OAuth, JWT) — port 8080
-- `frontend/landing-page/`: React SPA (login, register, account settings) — port 3000
+- `backend/auth-service/`: Spring Boot 3.x (auth, OAuth, JWT) — port 8080
+- `frontend/auth-service-mfe/`: React SPA (login, register, account settings) — port 3000
 
 ## 📐 Architecture Reference
 - **Current architecture**: `.claude/memory/architecture.md` — exact live architecture (packages, endpoints, schema, flows)
@@ -61,8 +61,8 @@ For non-trivial changes, verify before submitting:
 - Go fix failing CI tests without being told how
 
 ## 🚀 Key Build Commands
-- **Backend Build**: `mvn clean install` (in `login-system-backend/`)
-- **Frontend Start**: `npm start` (in `frontend/landing-page/`)
+- **Backend Build**: `mvn clean install` (in `backend/auth-service/`)
+- **Frontend Start**: `npm start` (in `frontend/auth-service-mfe/`)
 - **Full Stack**: `docker compose up --build` (from repo root)
 
 ## Task Management
