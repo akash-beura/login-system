@@ -4,14 +4,18 @@ Project setup for a Spring Boot backend and React frontend with Google OAuth2.
 
 ## 🤖 Agentic Setup
 The `.claude` directory contains the core configuration:
-- **Agents**: Roles and model routing for specific tasks (Architecture, Dev, Security, Review).
+- **Agents**: Roles and model routing for specific tasks (Architecture, Dev, Security, Review, Test).
 - **Skills**: Reusable implementation strategies for OAuth2, JWT, and React.
 - **Memory**: Living documentation of architecture, conventions, and decisions.
-- **Rules**: Token optimization and coding standards defined in `rules.md`.
+- **Rules**: Coding standards defined in `rules.md`.
 
 ## 🛠 Project Structure
-- `backend/auth-service`: Spring Boot 3.x (auth, OAuth, JWT)
-- `frontend/auth-service-mfe`: React (login, register, account settings)
+- `login-system-backend/`: Spring Boot 3.x (auth, OAuth, JWT) — port 8080
+- `frontend/landing-page/`: React SPA (login, register, account settings) — port 3000
+
+## 📐 Architecture Reference
+- **Current architecture**: `.claude/memory/architecture.md` — exact live architecture (packages, endpoints, schema, flows)
+- **Original scaffold**: `.claude/memory/project_skeleton.md` — high-level skeleton used to bootstrap the project
 
 ## Workflow Orchestration
 
@@ -27,10 +31,10 @@ The `.claude` directory contains the core configuration:
 - Offload research, exploration, and parallel analysis to subagents
 - For complex problems, throw more compute at it via subagents
 - One task per subagent for focused execution
-- Available agents: Architecture, Dev, Security, Review (see `.claude` directory)
+- Available agents: `backend-architect`, `backend-dev`, `security-specialist`, `frontend-dev`, `reviewer`, `devops-observability`, `document-maker`, `test-writer`
 
 ### 3. Self-Improvement Loop
-- After ANY correction from the user: update `tasks/lessons.md` with the pattern
+- After ANY correction from the user: update `.claude/memory/lessons.md` with the pattern
 - Write rules for yourself that prevent the same mistake
 - Ruthlessly iterate on these lessons until mistake rate drops
 - Review lessons at session start for relevant project
@@ -42,11 +46,13 @@ The `.claude` directory contains the core configuration:
 - Run tests, check logs, demonstrate correctness
 - Run `reviewer` agent after implementation for quality checks
 
-### 5. Demand Elegance (Balanced)
-- For non-trivial changes: pause and ask "is there a more elegant way?"
-- If a fix feels hacky: "Knowing everything I know now, implement the elegant solution"
-- Skip this for simple, obvious fixes — don't over-engineer
-- Challenge your own work before presenting it
+### 5. Code Quality Criteria
+For non-trivial changes, verify before submitting:
+- No method exceeds 30 lines
+- No class exceeds 300 lines
+- No nested callbacks/conditions deeper than 2 levels
+- No duplication across 3+ locations (extract to shared utility)
+- Every public API method has validation at the boundary
 
 ### 6. Autonomous Bug Fixing
 - When given a bug report: just fix it. Don't ask for hand-holding
@@ -55,16 +61,16 @@ The `.claude` directory contains the core configuration:
 - Go fix failing CI tests without being told how
 
 ## 🚀 Key Build Commands
-- **Backend Build**: `mvn clean install` (in `backend/auth-service`)
-- **Frontend Start**: `npm start` (in `frontend/auth-service-mfe`)
+- **Backend Build**: `mvn clean install` (in `login-system-backend/`)
+- **Frontend Start**: `npm start` (in `frontend/landing-page/`)
+- **Full Stack**: `docker compose up --build` (from repo root)
 
 ## Task Management
-1. **Plan First**: Write plan to `tasks/todo.md` with checkable items
+1. **Plan First**: Use native `TodoWrite` tool to track tasks with checkable items
 2. **Verify Plan**: Check in before starting implementation
 3. **Track Progress**: Mark items complete as you go
 4. **Explain Changes**: High-level summary at each step
-5. **Document Results**: Add review section to `tasks/todo.md`
-6. **Capture Lessons**: Update `tasks/lessons.md` after corrections
+5. **Capture Lessons**: Update `.claude/memory/lessons.md` after corrections
 
 ## 📋 Coding Standards
 Defined in `.claude/rules.md` and `.claude/memory/conventions.md`.
@@ -75,4 +81,4 @@ Defined in `.claude/rules.md` and `.claude/memory/conventions.md`.
 - **Minimal Impact**: Changes should only touch what's necessary. Avoid introducing bugs.
 
 ## 📋 Memory
-Till last action memory should be stored in `.claude/memory/MEMORY_PREVIOUS.md` file.
+Key session state is captured in `.claude/memory/MEMORY.md`. Lessons go in `.claude/memory/lessons.md`.
