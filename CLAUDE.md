@@ -5,7 +5,7 @@ Project setup for a Spring Boot backend and React frontend with Google OAuth2.
 ## 🤖 Agentic Setup
 The `.claude` directory contains the core configuration:
 - **Agents**: Roles and model routing for specific tasks (Architecture, Dev, Security, Review, QA).
-- **Skills**: Reusable implementation strategies for OAuth2, JWT, and React.
+- **Skills**: Reusable implementation strategies organized as `.claude/skills/<topic>/SKILL.md` (OAuth2, JWT, React, etc.).
 - **Memory**: Living documentation of architecture, conventions, and decisions.
 - **Rules**: Token optimization and coding standards defined in `rules.md`.
 
