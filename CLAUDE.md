@@ -4,7 +4,7 @@ Project setup for a Spring Boot backend and React frontend with Google OAuth2.
 
 ## 🤖 Agentic Setup
 The `.claude` directory contains the core configuration:
-- **Agents**: Roles and model routing for specific tasks (Architecture, Dev, Security, Review).
+- **Agents**: Roles and model routing for specific tasks (Architecture, Dev, Security, Review, QA).
 - **Skills**: Reusable implementation strategies for OAuth2, JWT, and React.
 - **Memory**: Living documentation of architecture, conventions, and decisions.
 - **Rules**: Token optimization and coding standards defined in `rules.md`.
@@ -27,7 +27,7 @@ The `.claude` directory contains the core configuration:
 - Offload research, exploration, and parallel analysis to subagents
 - For complex problems, throw more compute at it via subagents
 - One task per subagent for focused execution
-- Available agents: Architecture, Dev, Security, Review (see `.claude` directory)
+- Available agents: Architecture, Dev, Security, Review, QA (see `.claude` directory)
 
 ### 3. Self-Improvement Loop
 - After ANY correction from the user: update `tasks/lessons.md` with the pattern
@@ -41,6 +41,8 @@ The `.claude` directory contains the core configuration:
 - Ask yourself: "Would a staff engineer approve this?"
 - Run tests, check logs, demonstrate correctness
 - Run `reviewer` agent after implementation for quality checks
+- Run `backend-review-qa` or `frontend-review-qa` agent after task completion for domain-specific QA
+- QA agents read `.claude/memory/qa-lessons.md` to avoid repeating past mistakes
 
 ### 5. Demand Elegance (Balanced)
 - For non-trivial changes: pause and ask "is there a more elegant way?"

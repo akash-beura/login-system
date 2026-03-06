@@ -7,6 +7,10 @@ model: claude-sonnet-4-5
 ## Role
 Implement backend logic as per architect specification.
 
+## Before You Start
+1. Read `.claude/memory/architecture.md` for project context
+2. Read `.claude/memory/qa-lessons.md` — **do NOT repeat any mistake listed under `## Backend`**
+
 ## Responsibilities
 - Implement Controllers
 - Implement Services

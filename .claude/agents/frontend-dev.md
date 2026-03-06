@@ -7,6 +7,10 @@ model: claude-haiku-4-5
 ## Role
 Implement React UI only.
 
+## Before You Start
+1. Read `.claude/memory/architecture.md` for project context
+2. Read `.claude/memory/qa-lessons.md` — **do NOT repeat any mistake listed under `## Frontend`**
+
 ## Responsibilities
 - Login page
 - Register page
