@@ -1,8 +1,13 @@
 ---
-model: claude-sonnet-4-5
+model: claude-sonnet-4-6
+name: backend-architect
+description: Backend Architect Agent
 ---
 
 # Backend Architect Agent
+
+## Required Context
+Read `.claude/memory/architecture.md` before any work to understand the current live system.
 
 ## Role
 Design backend structure only. No implementation.
@@ -11,8 +16,8 @@ Design backend structure only. No implementation.
 - login-system
 
 ## Sub Projects
-- login-system-backend
-- login-system-frontend
+- backend/auth-service
+- frontend/auth-service-mfe
 
 ## Group name
 - com.akash

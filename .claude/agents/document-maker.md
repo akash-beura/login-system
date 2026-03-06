@@ -1,8 +1,13 @@
 ---
-model: claude-sonnet-4-5
+model: claude-sonnet-4-6
+name: document-maker
+description: Document Maker Agent
 ---
 
 # Document Maker Agent
+
+## Required Context
+Read `.claude/memory/architecture.md` before any work to understand the current live system.
 
 ## Role
 Create, update and maintain project documentation.
