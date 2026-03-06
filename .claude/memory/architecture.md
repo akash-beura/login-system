@@ -1,7 +1,6 @@
 # Architecture — Login System (Current State)
 
-> Original scaffold: see [project_skeleton.md](./project_skeleton.md)
-> Last updated: 2026-03-05
+> Last updated: 2026-03-06
 
 ---
 
@@ -342,25 +341,30 @@ docker compose up --build
 | security-specialist | Security architecture and implementation |
 | frontend-dev | Frontend implementation |
 | reviewer | Code review and quality checks |
+| dev-task-reviewer | Reviews dev output, extracts lessons to dev-lessons.md |
 | devops-observability | DevOps, monitoring, Docker setup |
 | document-maker | Documentation generation |
+| test-writer | Writes and maintains automated tests |
 
-### Skills
-- `jwt-security.md` — JWT patterns
-- `oauth2-google.md` — OAuth2 integration patterns
-- `springboot-setup.md` — Spring Boot setup
-- `react-ui-guidelines.md` — React UI patterns
-- `api-versioning.md` — API versioning strategy
-- `rate-limiting.md` — Rate limiting patterns
-- `prometheus-grafana.md` — Observability stack
+All dev agents read `dev-lessons.md` before starting and update it after encountering issues.
+
+### Skills (`.claude/skills/<name>/SKILL.md`)
+- `jwt-security` — JWT patterns
+- `oauth2-google` — OAuth2 integration patterns
+- `springboot-setup` — Spring Boot setup
+- `react-ui-guidelines` — React UI patterns
+- `api-versioning` — API versioning strategy
+- `rate-limiting` — Rate limiting patterns
+- `prometheus-grafana` — Observability stack
 
 ### Memory Files
 - `architecture.md` — This file (current live architecture)
-- `project_skeleton.md` — Original scaffold
 - `conventions.md` — Naming and coding conventions
 - `decisions.md` — Architectural decision records
+- `dev-lessons.md` — Dev anti-patterns and error prevention
+- `lessons.md` — Orchestrator-level lessons
 - `MEMORY.md` — Session memory (loaded into system prompt)
-- `MEMORY_PREVIOUS.md` — Previous session memory
+- `roadmap.md` — Product and infrastructure roadmap
 
 ---
 

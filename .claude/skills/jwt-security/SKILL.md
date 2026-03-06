@@ -33,5 +33,5 @@ See `.claude/memory/architecture.md` for definitive reference.
 - `security/JwtProvider.java` — generation + validation
 - `security/JwtAuthFilter.java` — filter
 - `config/SecurityConfig.java` — filter registration
-- `frontend/landing-page/src/services/apiClient.js` — `withCredentials: true`
-- `frontend/landing-page/src/context/AuthContext.js` — in-memory token + BroadcastChannel
+- `frontend/auth-service-mfe/src/services/api-client/apiClient.js` — `withCredentials: true`
+- `frontend/auth-service-mfe/src/context/AuthContext.jsx` — in-memory token + BroadcastChannel

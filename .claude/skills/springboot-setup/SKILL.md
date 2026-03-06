@@ -4,7 +4,7 @@
 - Spring Boot: 3.2.5
 - Java: 17
 - Build: Maven (jar packaging)
-- Backend path: `login-system-backend/`
+- Backend path: `backend/auth-service/`
 
 ## Core Dependencies (pom.xml)
 - `spring-boot-starter-web`

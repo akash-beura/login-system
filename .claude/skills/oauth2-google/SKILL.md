@@ -26,4 +26,4 @@ See `.claude/memory/architecture.md` for definitive reference.
 - `security/OAuth2UserService.java` — user upsert logic
 - `security/OAuthTokenStore.java` — Redis operations
 - `controller/AuthController.java` → `exchangeOAuthCode()` method
-- `frontend/landing-page/src/pages/oauth-callback/` — OAuthCallbackPage
+- `frontend/auth-service-mfe/src/pages/oauth-callback/` — OAuthCallbackPage

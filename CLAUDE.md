@@ -2,20 +2,19 @@
 
 Project setup for a Spring Boot backend and React frontend with Google OAuth2.
 
-## 🤖 Agentic Setup
+## Agentic Setup
 The `.claude` directory contains the core configuration:
-- **Agents**: Roles and model routing for specific tasks (Architecture, Dev, Security, Review, Test).
-- **Skills**: Reusable implementation strategies for OAuth2, JWT, and React.
-- **Memory**: Living documentation of architecture, conventions, and decisions.
+- **Agents**: Roles and model routing for specific tasks (Architecture, Dev, Security, Review, Test, Task Review).
+- **Skills**: Reusable implementation strategies in `.claude/skills/<name>/SKILL.md`.
+- **Memory**: Living documentation of architecture, conventions, decisions, and lessons.
 - **Rules**: Coding standards defined in `rules.md`.
 
-## 🛠 Project Structure
+## Project Structure
 - `backend/auth-service/`: Spring Boot 3.x (auth, OAuth, JWT) — port 8080
 - `frontend/auth-service-mfe/`: React SPA (login, register, account settings) — port 3000
 
-## 📐 Architecture Reference
+## Architecture Reference
 - **Current architecture**: `.claude/memory/architecture.md` — exact live architecture (packages, endpoints, schema, flows)
-- **Original scaffold**: `.claude/memory/project_skeleton.md` — high-level skeleton used to bootstrap the project
 
 ## Workflow Orchestration
 
@@ -31,13 +30,14 @@ The `.claude` directory contains the core configuration:
 - Offload research, exploration, and parallel analysis to subagents
 - For complex problems, throw more compute at it via subagents
 - One task per subagent for focused execution
-- Available agents: `backend-architect`, `backend-dev`, `security-specialist`, `frontend-dev`, `reviewer`, `devops-observability`, `document-maker`, `test-writer`
+- Available agents: `backend-architect`, `backend-dev`, `security-specialist`, `frontend-dev`, `reviewer`, `dev-task-reviewer`, `devops-observability`, `document-maker`, `test-writer`
 
 ### 3. Self-Improvement Loop
-- After ANY correction from the user: update `.claude/memory/lessons.md` with the pattern
+- After ANY correction from the user: update `.claude/memory/lessons.md` with the orchestrator-level pattern
+- Dev agents: read `.claude/memory/dev-lessons.md` before starting, update it after encountering issues
+- After every dev task: run `dev-task-reviewer` agent to review output and extract lessons
 - Write rules for yourself that prevent the same mistake
 - Ruthlessly iterate on these lessons until mistake rate drops
-- Review lessons at session start for relevant project
 
 ### 4. Verification Before Done
 - Never mark a task complete without proving it works
@@ -45,6 +45,7 @@ The `.claude` directory contains the core configuration:
 - Ask yourself: "Would a staff engineer approve this?"
 - Run tests, check logs, demonstrate correctness
 - Run `reviewer` agent after implementation for quality checks
+- Run `dev-task-reviewer` agent to capture lessons from the task
 
 ### 5. Code Quality Criteria
 For non-trivial changes, verify before submitting:
@@ -60,19 +61,19 @@ For non-trivial changes, verify before submitting:
 - Zero context switching required from the user
 - Go fix failing CI tests without being told how
 
-## 🚀 Key Build Commands
+## Key Build Commands
 - **Backend Build**: `mvn clean install` (in `backend/auth-service/`)
 - **Frontend Start**: `npm start` (in `frontend/auth-service-mfe/`)
-- **Full Stack**: `docker compose up --build` (from repo root)
+- **Full Stack**: `docker compose up --build` (from repo root — no local Maven build needed)
 
 ## Task Management
 1. **Plan First**: Use native `TodoWrite` tool to track tasks with checkable items
 2. **Verify Plan**: Check in before starting implementation
 3. **Track Progress**: Mark items complete as you go
 4. **Explain Changes**: High-level summary at each step
-5. **Capture Lessons**: Update `.claude/memory/lessons.md` after corrections
+5. **Capture Lessons**: Dev lessons in `.claude/memory/dev-lessons.md`, orchestrator lessons in `.claude/memory/lessons.md`
 
-## 📋 Coding Standards
+## Coding Standards
 Defined in `.claude/rules.md` and `.claude/memory/conventions.md`.
 
 ## Core Principles
@@ -80,5 +81,7 @@ Defined in `.claude/rules.md` and `.claude/memory/conventions.md`.
 - **No Laziness**: Find root causes. No temporary fixes. Senior developer standards.
 - **Minimal Impact**: Changes should only touch what's necessary. Avoid introducing bugs.
 
-## 📋 Memory
-Key session state is captured in `.claude/memory/MEMORY.md`. Lessons go in `.claude/memory/lessons.md`.
+## Memory
+- Session state: `.claude/memory/MEMORY.md`
+- Dev anti-patterns: `.claude/memory/dev-lessons.md`
+- Orchestrator lessons: `.claude/memory/lessons.md`

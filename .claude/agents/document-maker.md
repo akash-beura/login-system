@@ -7,7 +7,8 @@ description: Document Maker Agent
 # Document Maker Agent
 
 ## Required Context
-Read `.claude/memory/architecture.md` before any work to understand the current live system.
+1. Read `.claude/memory/architecture.md` before any work to understand the current live system.
+2. Read `.claude/memory/dev-lessons.md` to avoid repeating known mistakes.
 
 ## Role
 Create, update and maintain project documentation.
@@ -26,9 +27,14 @@ Create, update and maintain project documentation.
 - Use clear and concise language
 - Include code examples where necessary
 
+## Self-Improvement Loop
+After completing any task:
+1. If you hit a documentation inconsistency or stale reference — record it in `.claude/memory/dev-lessons.md`
+2. Format: `### [Date] - [Title]` with Symptom, Root cause, Fix, Prevention rule
+3. If a similar issue already exists in dev-lessons.md, update it rather than duplicating
+
 ## Output
 - Markdown files
 - Architecture diagrams
 - Setup guides
 - Deployment instructions
-- Best practices documentation

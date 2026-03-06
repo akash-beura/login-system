@@ -12,7 +12,13 @@
 7. Never explain basic Spring Boot, React, or Java concepts.
 8. Avoid long theory — link to `.claude/memory/architecture.md` instead.
 
+## Self-Improvement Rules
+9. All dev agents MUST read `.claude/memory/dev-lessons.md` before starting any task.
+10. After any dev task completes, run `dev-task-reviewer` agent to review and extract lessons.
+11. New anti-patterns discovered go into `.claude/memory/dev-lessons.md` immediately.
+12. Never repeat an error already documented in `dev-lessons.md`.
+
 ## Model Routing
 Model selection is controlled by agent frontmatter (`model:` field), not by these rules.
 - `claude-opus-4-6` — reviewer agent only (deep analysis)
-- `claude-sonnet-4-6` — all other agents (implementation, architecture, security, docs, test)
+- `claude-sonnet-4-6` — all other agents (implementation, architecture, security, docs, test, task review)

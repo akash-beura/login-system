@@ -1,32 +1,29 @@
 # Project Memory — Login System
 
 ## Current Phase
-Architecture defined. Ready for implementation phase.
+Phase 2 complete. Security-hardened. Ready for Phase 3 (rate limiting, resume management).
 
-## Backend
-- Group: com.akash.loginsystem
-- Root package layers: controller, service/impl, repository, security, config, entity, dto/request, dto/response, exception, model
-- Key entities: User (with passwordSet flag), RefreshToken
-- AuthProvider enum: LOCAL, GOOGLE
-- Password is nullable for OAuth users; passwordSet=false until they set one
+## Quick Reference
+- **Full architecture**: `.claude/memory/architecture.md`
+- **Conventions**: `.claude/memory/conventions.md`
+- **Decisions**: `.claude/memory/decisions.md`
+- **Dev lessons**: `.claude/memory/dev-lessons.md`
+- **Orchestrator lessons**: `.claude/memory/lessons.md`
+- **Roadmap**: `.claude/memory/roadmap.md`
+
+## Key Facts (not duplicated in architecture.md)
 - API base: /api/v1
-
-## Account Linking Flow
-- POST /api/v1/auth/login → if OAuth user + passwordSet=false → return requiresPasswordSet:true
-- Client routes to SetPasswordPage → POST /api/v1/auth/set-password → sets password, flips flag
-
-## Frontend
-- Pages: LoginPage, RegisterPage, SetPasswordPage, HomePage (Under Maintenance)
-- Design tokens: bg #f0f0f0 (silver), btn #1a3a6b (dark blue), rounded corners
-- Auth state via React Context (AuthContext)
-- Axios in services/authService.js
+- Group: com.akash.loginsystem
+- Password is nullable for OAuth users; passwordSet=false until they set one
+- `RegisterRequest` requires `confirmPassword` field
 
 ## Docker / DevOps
-- Services: postgres, backend, frontend
-- All secrets externalized via env vars (DB_URL, JWT_SECRET, GOOGLE_CLIENT_ID, etc.)
-- Designed for future migration: Argo CD → Kubernetes → GCP
+- Services: postgres, redis, backend, frontend
+- All secrets externalized via env vars
+- Backend Dockerfile: multi-stage Maven build (self-contained)
+- Designed for future: Argo CD → Kubernetes → GCP
 
-## Decisions Log
-- See decisions.md for numbered ADRs
-- JWT stateless, no sessions
-- Same User table for LOCAL and GOOGLE providers
+## Critical Rules
+- Always `ls` actual directories before updating path references
+- Use `npm install --legacy-peer-deps` for this project
+- Never set `ddl-auto: create-drop` or `create` in prod profile
