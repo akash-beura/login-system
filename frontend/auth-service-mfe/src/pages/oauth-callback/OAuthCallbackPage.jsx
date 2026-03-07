@@ -23,7 +23,7 @@ export default function OAuthCallbackPage() {
 
     authService.exchangeOAuthCode(code)
       .then((data) => {
-        login(data.accessToken, data.user);
+        login(data.accessToken, data.sessionToken, data.user);
         navigate(data.requiresPasswordSet ? '/set-password' : '/homepage');
       })
       .catch(() => navigate('/login?error=oauth_failed'));

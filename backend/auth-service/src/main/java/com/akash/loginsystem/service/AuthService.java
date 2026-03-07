@@ -2,7 +2,6 @@ package com.akash.loginsystem.service;
 
 import com.akash.loginsystem.dto.request.LoginRequest;
 import com.akash.loginsystem.dto.request.OAuthCodeRequest;
-import com.akash.loginsystem.dto.request.RefreshRequest;
 import com.akash.loginsystem.dto.request.RegisterRequest;
 import com.akash.loginsystem.dto.request.SetPasswordRequest;
 import com.akash.loginsystem.dto.response.AuthResponse;
@@ -36,20 +35,11 @@ public interface AuthService {
     AuthResponse completeOAuthLogin(User user);
 
     /**
-     * Validates the refresh token, rotates it, and issues a new access + refresh pair.
-     * Throws InvalidCredentialsException if the token is unknown or expired.
-     */
-    AuthResponse refresh(RefreshRequest request);
-
-    /**
      * Exchanges the one-time opaque OAuth2 code for the stored AuthResponse.
      * Throws OAuthCodeExpiredException if the code is unknown, already consumed, or past its 30s TTL.
      */
     AuthResponse exchangeOAuthCode(OAuthCodeRequest request);
 
-    /**
-     * Invalidates all refresh tokens for the given user (logout / session termination).
-     * The access token remains valid until its natural expiry.
-     */
-    void logout(UUID userId);
+    /** Invalidates the session token in Redis. */
+    void logout(UUID userId, String sessionToken);
 }

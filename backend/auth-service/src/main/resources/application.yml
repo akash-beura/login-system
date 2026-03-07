@@ -48,9 +48,10 @@ app:
   jwt:
     secret: ${JWT_SECRET}
     expiry-ms: ${JWT_EXPIRY_MS:3600000}          # 1 hour default
-    refresh-expiry-ms: ${JWT_REFRESH_EXPIRY_MS:604800000}  # 7 days default
   frontend-url: ${FRONTEND_URL:http://localhost:3000}
   base-url: ${APP_BASE_URL:http://localhost:8080}
+  session:
+    timeout-minutes: ${SESSION_TIMEOUT_MINUTES:30}
 
 server:
   port: ${SERVER_PORT:8080}

@@ -14,6 +14,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class AppProperties {
 
     private final Jwt jwt = new Jwt();
+    private final Session session = new Session();
     private String frontendUrl;
     private String baseUrl;
 
@@ -22,6 +23,11 @@ public class AppProperties {
     public static class Jwt {
         private String secret;
         private long expiryMs;
-        private long refreshExpiryMs;
+    }
+
+    @Getter
+    @Setter
+    public static class Session {
+        private int timeoutMinutes = 30;
     }
 }

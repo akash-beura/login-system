@@ -49,11 +49,6 @@ public class JwtProvider {
         );
     }
 
-    public String generateRefreshTokenValue() {
-        // Opaque random string — stored in DB, not a JWT
-        return UUID.randomUUID().toString();
-    }
-
     // ── Validation ───────────────────────────────────────────────────────────
 
     public boolean validateToken(String token) {

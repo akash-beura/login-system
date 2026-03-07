@@ -4,26 +4,36 @@ import axios from 'axios';
  * Axios instance pre-configured with the backend base URL.
  * The Authorization header is injected per-request by authService
  * so the client itself stays stateless.
- *
- * Phase 2: withCredentials enables sending httpOnly cookies with requests.
- * This allows the backend to read the refreshToken cookie automatically.
  */
 const apiClient = axios.create({
   baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8080/api/v1',
   headers: { 'Content-Type': 'application/json' },
-  withCredentials: true, // Phase 2: Send cookies with all requests
 });
 
 /**
- * Global response interceptor — surfaces 401s clearly.
- * Components can catch these and trigger a logout.
+ * Request interceptor — injects X-Session-Token from sessionStorage.
+ */
+apiClient.interceptors.request.use((config) => {
+  const sessionToken = sessionStorage.getItem('sessionToken');
+  if (sessionToken) {
+    config.headers['X-Session-Token'] = sessionToken;
+  }
+  return config;
+});
+
+/**
+ * Response interceptor — on 401, clear session and redirect to login.
  */
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Propagate as a typed error; AuthContext consumers handle the redirect
-      error.isUnauthorized = true;
+      sessionStorage.removeItem('accessToken');
+      sessionStorage.removeItem('sessionToken');
+      sessionStorage.removeItem('user');
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

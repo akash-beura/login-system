@@ -4,6 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import com.akash.loginsystem.service.SessionTokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -29,6 +30,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
     private final CustomUserDetailsService userDetailsService;
+    private final SessionTokenService sessionTokenService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -40,6 +42,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         if (StringUtils.hasText(token) && jwtProvider.validateToken(token)) {
             String userId = jwtProvider.extractUserId(token);
+
+            // Validate the session token (sliding TTL refresh)
+            String sessionToken = request.getHeader("X-Session-Token");
+            String sessionUserId = sessionTokenService.validateAndRefresh(sessionToken);
+            if (sessionUserId == null || !sessionUserId.equals(userId)) {
+                // No valid session or user mismatch — treat as unauthenticated
+                filterChain.doFilter(request, response);
+                return;
+            }
 
             UserDetails userDetails = userDetailsService.loadUserById(userId);
 

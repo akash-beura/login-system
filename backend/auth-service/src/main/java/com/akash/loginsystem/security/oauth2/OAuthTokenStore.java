@@ -40,7 +40,7 @@ public class OAuthTokenStore {
      */
     private record OAuthCodeData(
         String accessToken,
-        String refreshToken,
+        String sessionToken,
         boolean requiresPasswordSet,
         UserSummaryResponse user
     ) {}
@@ -50,7 +50,7 @@ public class OAuthTokenStore {
         String code = UUID.randomUUID().toString();
         OAuthCodeData data = new OAuthCodeData(
             response.getAccessToken(),
-            response.getRefreshToken(),
+            response.getSessionToken(),
             response.isRequiresPasswordSet(),
             response.getUser()
         );
@@ -77,7 +77,7 @@ public class OAuthTokenStore {
             OAuthCodeData data = objectMapper.readValue(json, OAuthCodeData.class);
             return Optional.of(AuthResponse.builder()
                 .accessToken(data.accessToken())
-                .refreshToken(data.refreshToken())
+                .sessionToken(data.sessionToken())
                 .requiresPasswordSet(data.requiresPasswordSet())
                 .user(data.user())
                 .build());
