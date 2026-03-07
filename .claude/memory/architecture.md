@@ -1,6 +1,6 @@
 # Architecture — Login System (Current State)
 
-> Last updated: 2026-03-06
+> Last updated: 2026-03-07
 
 ---
 
@@ -11,15 +11,15 @@ Full-stack authentication system with Google OAuth2 integration.
 ```
 Browser
   └── React App (port 3000)
-        ├── Axios (withCredentials: true)
-        └── httpOnly Cookie (refresh token, auto-sent by browser)
+        ├── Axios (Authorization: Bearer + X-Session-Token headers)
+        └── sessionStorage (accessToken, sessionToken, user)
               │
               ▼
   Spring Boot API (port 8080)
-        ├── JWT Filter (stateless)
+        ├── JWT Filter (validates JWT + session token, cross-checks userId)
         ├── OAuth2 Client (Google)
-        ├── PostgreSQL (users, refresh_tokens)
-        └── Redis (OAuth one-time codes, 30s TTL)
+        ├── PostgreSQL (users)
+        └── Redis (session tokens 30min TTL + OAuth one-time codes 30s TTL)
 ```
 
 ---
@@ -37,7 +37,7 @@ Browser
 
 ```
 config/
-  AppProperties.java          — Externalized config (JWT, URLs)
+  AppProperties.java          — Externalized config (JWT, session, URLs)
   AuthBeanConfig.java         — PasswordEncoder, AuthenticationManager beans
   CorsConfig.java             — CORS (allowCredentials=true, configured origins)
   SecurityConfig.java         — HTTP security, stateless session, OAuth2 login
@@ -52,17 +52,15 @@ dto/
     LoginRequest.java         — email, password
     RegisterRequest.java      — email, name, password, confirmPassword
     OAuthCodeRequest.java     — code (one-time OAuth exchange code)
-    RefreshRequest.java       — refreshToken (internal, pre-Phase 2 compat)
     SetPasswordRequest.java   — password, confirmPassword
     UpdateProfileRequest.java — phone, address fields
   response/
-    AuthResponse.java         — accessToken, user (UserSummaryResponse), requiresPasswordSet
+    AuthResponse.java         — accessToken, sessionToken, user (UserSummaryResponse), requiresPasswordSet
     UserResponse.java         — full profile (phone, address, OAuth fields)
     UserSummaryResponse.java  — record: id, email, name, provider, passwordSet, pictureUrl
 
 entity/
   User.java                   — users table (see schema below)
-  RefreshToken.java           — refresh_tokens table (see schema below)
 
 exception/
   GlobalExceptionHandler.java
@@ -79,10 +77,9 @@ model/
 
 repository/
   UserRepository.java         — findByEmail, existsByEmail
-  RefreshTokenRepository.java — findByToken, findByUserId, deleteByUserId, deleteExpiredTokens
 
 security/
-  JwtAuthFilter.java          — Extracts + validates JWT from Authorization header
+  JwtAuthFilter.java          — Validates JWT + session token, cross-checks userId
   JwtProvider.java            — HS256 JWT: generate, validate, extractUserId
   CustomUserDetailsService.java — Loads UserDetails by userId
   oauth2/
@@ -94,8 +91,9 @@ security/
 service/
   AuthService.java (interface)
   UserService.java (interface)
+  SessionTokenService.java    — Redis session tokens: create, validateAndRefresh, invalidate
   impl/
-    AuthServiceImpl.java      — register, login, setPassword, refresh, exchangeOAuthCode, logout
+    AuthServiceImpl.java      — register, login, setPassword, exchangeOAuthCode, logout
     UserServiceImpl.java      — getMe, updateMe
 ```
 
@@ -105,12 +103,11 @@ service/
 |--------|------|------|---------|
 | POST | /api/v1/auth/register | None | Register LOCAL user |
 | POST | /api/v1/auth/login | None | Email + password login |
-| POST | /api/v1/auth/refresh | httpOnly cookie | Rotate access + refresh tokens |
 | POST | /api/v1/auth/oauth2/token | None | Exchange one-time OAuth code for tokens |
-| POST | /api/v1/auth/set-password | Bearer JWT | Set password for OAuth-only user |
-| POST | /api/v1/auth/logout | Bearer JWT | Revoke all refresh tokens |
-| GET | /api/v1/users/me | Bearer JWT | Get user profile |
-| PUT | /api/v1/users/me | Bearer JWT | Update user profile |
+| POST | /api/v1/auth/set-password | Bearer + X-Session-Token | Set password for OAuth-only user |
+| POST | /api/v1/auth/logout | Bearer + X-Session-Token | Invalidate session in Redis |
+| GET | /api/v1/users/me | Bearer + X-Session-Token | Get user profile |
+| PUT | /api/v1/users/me | Bearer + X-Session-Token | Update user profile |
 
 **Public (no auth):** /api/v1/auth/register, /api/v1/auth/login, /api/v1/auth/oauth2/token, /login/oauth2/**, /oauth2/**, /actuator/health, /actuator/info, /h2-console/** (dev)
 
@@ -132,37 +129,28 @@ address_line1, city, state, zip_code, country  VARCHAR NULLABLE
 created_at, updated_at  TIMESTAMP
 ```
 
-**refresh_tokens**
-```
-id          UUID PK
-token       VARCHAR UNIQUE           -- opaque random UUID
-user_id     UUID FK → users.id
-expires_at  TIMESTAMP
-created_at  TIMESTAMP
-```
-
 ### Security Model
 
 **Access Token (JWT)**
 - Algorithm: HS256
 - TTL: 1 hour
 - Claims: `sub` (userId), `role`, `iss` (app base URL), `jti`, `iat`, `exp`
-- Storage: React state (memory only — lost on page reload)
+- Storage: `sessionStorage` (survives page refresh, cleared on tab close)
 - Transport: `Authorization: Bearer <token>` header
 
-**Refresh Token (Opaque)**
-- Type: Random UUID (not JWT)
-- TTL: 7 days
-- Storage: PostgreSQL (`refresh_tokens` table)
-- Transport: httpOnly cookie
-- Cookie attrs: `HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth/refresh; MaxAge=604800`
-- Rotation: Every `/auth/refresh` call invalidates old token, issues new one
+**Session Token (Redis)**
+- Type: Opaque UUID
+- TTL: 30 minutes (sliding — resets on every authenticated request)
+- Storage: Redis (`session:{token}` → userId)
+- Transport: `X-Session-Token` header
+- Revocation: deleted from Redis on logout
 
 **Password Hashing:** BCrypt (Spring Security default)
 
 **CORS**
 - Allowed Origins: `${FRONTEND_URL}` (e.g., http://localhost:3000)
 - Allowed Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
+- Allowed Headers: Authorization, Content-Type, Accept, X-Session-Token
 - Allow Credentials: true
 - Exposed Headers: Authorization
 
@@ -174,7 +162,7 @@ created_at  TIMESTAMP
 3. OAuth2SuccessHandler: upsert User, build AuthResponse, store in Redis (30s TTL)
 4. Redirect browser to frontend /oauth/callback?code=<one-time-code>
 5. Frontend → POST /api/v1/auth/oauth2/token { code }
-6. Backend: Redis.consume(code) → return accessToken + set refreshToken cookie
+6. Backend: Redis.consume(code) → return { accessToken, sessionToken, user }
 ```
 
 **Redis key format:** `oauth:code:{uuid}` — atomic getAndDelete(), supports horizontal scaling
@@ -199,7 +187,7 @@ created_at  TIMESTAMP
 - **Build**: CRA + Craco (`@craco/craco@7.1.0`)
 - **Port**: 3000
 - **State**: React Context (no Redux)
-- **HTTP**: Axios with `withCredentials: true`
+- **HTTP**: Axios with `Authorization` + `X-Session-Token` headers
 
 ### Directory Structure (`frontend/auth-service-mfe/src/`)
 
@@ -226,9 +214,8 @@ components/
   theme-toggle/ThemeToggle.jsx    — Light/dark toggle
 
 context/
-  AuthContext.jsx                 — Global auth state + BroadcastChannel multi-tab sync
+  AuthContext.jsx                 — Global auth state (sessionStorage-backed, no BroadcastChannel)
   ThemeContext.jsx                — Theme (light/dark)
-  createAuthContext.js            — Auth context factory
 
 hooks/
   useAuth.js                      — Access AuthContext (token, user, login, logout, isAuthenticated, initialized)
@@ -237,8 +224,8 @@ routes/
   ProtectedRoute.jsx              — Redirects to /login if not authenticated
 
 services/
-  api-client/apiClient.js         — Axios instance (baseURL, withCredentials: true, 401 interceptor)
-  auth-service/authService.js     — register, login, setPassword, refresh, exchangeOAuthCode, logout
+  api-client/apiClient.js         — Axios instance (baseURL, X-Session-Token interceptor, 401 interceptor)
+  auth-service/authService.js     — register, login, setPassword, exchangeOAuthCode, logout
   user-service/userService.js     — getMe, updateMe
 ```
 
@@ -259,22 +246,17 @@ services/
 ### Auth State & Token Management
 
 **On app load (AuthContext mount):**
-1. Call `authService.refresh()` — browser auto-sends httpOnly cookie
-2. Backend returns new accessToken
-3. Set `accessToken` in React state → `initialized = true`
-4. Broadcast `AUTH_INITIALIZED` via `BroadcastChannel('auth')`
-
-**Multi-tab sync (BroadcastChannel):**
-- Events: `AUTH_INITIALIZED`, `AUTH_LOGIN`, `AUTH_LOGOUT`
-- Receiving tab syncs in-memory accessToken from broadcast
-- Prevents race condition during simultaneous token rotation across tabs
+1. Read `accessToken`, `sessionToken`, `user` from `sessionStorage`
+2. If present → set state, `initialized = true` (synchronous, no API call)
+3. If absent → user is not authenticated
 
 **Token storage:**
 
 | Token | Storage | Lifetime | Transmission |
 |-------|---------|----------|-------------|
-| accessToken | React state (memory) | 1h (lost on reload) | Authorization: Bearer header |
-| refreshToken | httpOnly cookie (browser) | 7d | Auto-sent to /api/v1/auth/refresh |
+| accessToken | sessionStorage | 1h (survives refresh, cleared on tab close) | Authorization: Bearer header |
+| sessionToken | sessionStorage | 30min sliding (Redis TTL) | X-Session-Token header |
+| user | sessionStorage | — | Not transmitted (local display only) |
 
 ### Navbar Visibility
 - Hidden on: /login, /register, /oauth/callback, /set-password, /set-password-prompt
@@ -311,7 +293,7 @@ REACT_APP_API_URL=http://localhost:8080/api/v1
 ```
 SPRING_PROFILES_ACTIVE
 POSTGRES_DB, DB_USERNAME, DB_PASSWORD, DB_URL
-JWT_SECRET, JWT_EXPIRY_MS, JWT_REFRESH_EXPIRY_MS
+JWT_SECRET, JWT_EXPIRY_MS, SESSION_TIMEOUT_MINUTES
 GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
 REDIS_HOST, REDIS_PORT, REDIS_PASSWORD
 FRONTEND_URL, APP_BASE_URL

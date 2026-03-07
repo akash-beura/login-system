@@ -86,7 +86,7 @@ public void onAuthenticationSuccess(..., Authentication authentication) throws I
 ---
 
 ### Step 5 — `AuthServiceImpl.completeOAuthLogin()` → `issueTokens()`
-**File:** `AuthServiceImpl.java` · lines 153–156, 227–247
+**File:** `AuthServiceImpl.java`
 
 ```java
 // completeOAuthLogin() just delegates:
@@ -96,22 +96,14 @@ public AuthResponse completeOAuthLogin(User user) {
 
 // issueTokens() does the real work:
 private AuthResponse issueTokens(User user) {
-    refreshTokenRepository.deleteByUser(user);         // ① single-session enforcement: revoke any existing token
-
-    String accessToken       = jwtProvider.generateAccessToken(user);   // ② generate JWT
-    String refreshTokenValue = jwtProvider.generateRefreshTokenValue();  // ③ generate opaque refresh token
-
-    RefreshToken refreshToken = RefreshToken.builder()
-        .token(refreshTokenValue).user(user)
-        .expiresAt(Instant.now().plusMillis(appProperties.getJwt().getRefreshExpiryMs()))
-        .build();
-    refreshTokenRepository.save(refreshToken);         // ④ persist refresh token to DB
+    String accessToken  = jwtProvider.generateAccessToken(user);          // ① generate JWT
+    String sessionToken = sessionTokenService.createSession(user.getId()); // ② create Redis session (30min TTL)
 
     return AuthResponse.builder()
         .accessToken(accessToken)
-        .refreshToken(refreshTokenValue)
-        .requiresPasswordSet(!user.isPasswordSet())    // ⑤ flag for new Google users
-        .user(UserResponse.from(user))
+        .sessionToken(sessionToken)
+        .requiresPasswordSet(!user.isPasswordSet())    // ③ flag for new Google users
+        .user(UserSummaryResponse.from(user))
         .build();
 }
 ```
@@ -119,41 +111,38 @@ private AuthResponse issueTokens(User user) {
 ---
 
 ### Step 6 — `OAuthTokenStore.store()` saves the response
-**File:** `OAuthTokenStore.java` · lines 33–37
+**File:** `OAuthTokenStore.java`
 
 ```java
 public String store(AuthResponse response) {
     String code = UUID.randomUUID().toString();
-    store.put(code, new Entry(response, Instant.now().plusSeconds(30))); // 30s TTL
+    OAuthCodeData data = new OAuthCodeData(
+        response.getAccessToken(), response.getSessionToken(),
+        response.isRequiresPasswordSet(), response.getUser()
+    );
+    redisTemplate.opsForValue().set(KEY_PREFIX + code, serialize(data), Duration.ofSeconds(30));
     return code;
 }
 ```
 
-The `AuthResponse` (containing JWTs) lives in memory. The browser only ever sees the opaque UUID code.
+The `AuthResponse` data (containing JWT + session token) lives in Redis with 30s TTL. The browser only ever sees the opaque UUID code.
 
 ---
 
 ## Phase 2 — Frontend Exchanges the Code for Tokens
 
 ### Step 7 — `OAuthCallbackPage.useEffect()` reads the code from the URL
-**File:** `OAuthCallbackPage.jsx` · lines 23–46
+**File:** `OAuthCallbackPage.jsx`
 
 ```jsx
 useEffect(() => {
-    if (exchanged.current) return;  // prevent double-fire in React StrictMode
-    exchanged.current = true;
-
     const code = searchParams.get('code');    // ① read ?code= from URL
     if (!code) { navigate('/login?error=oauth_failed'); return; }
 
     authService.exchangeOAuthCode(code)       // ② POST to backend
         .then((data) => {
-            login(data.accessToken, data.user);   // ③ store token in React memory
-            if (data.requiresPasswordSet) {
-                navigate('/set-password');        // ④a new Google user → must set password
-            } else {
-                navigate('/homepage');            // ④b → go to app
-            }
+            login(data.accessToken, data.sessionToken, data.user);  // ③ store in sessionStorage
+            navigate(data.requiresPasswordSet ? '/set-password' : '/homepage'); // ④ route
         })
         .catch(() => navigate('/login?error=oauth_failed'));
 }, [searchParams, login, navigate]);
@@ -214,17 +203,21 @@ public Optional<AuthResponse> consume(String code) {
 
 ---
 
-### Step 12 — `AuthContext.login()` stores the token in React memory
-**File:** `AuthContext.jsx` · lines 17–20
+### Step 12 — `AuthContext.login()` stores tokens in sessionStorage
+**File:** `AuthContext.jsx`
 
 ```jsx
-const login = useCallback((token, userData) => {
-    setAccessToken(token);  // in-memory only — never localStorage
+const login = useCallback((token, session, userData) => {
+    setAccessToken(token);
+    setSessionToken(session);
     setUser(userData);
+    sessionStorage.setItem('accessToken', token);
+    sessionStorage.setItem('sessionToken', session);
+    sessionStorage.setItem('user', JSON.stringify(userData));
 }, []);
 ```
 
-`isAuthenticated` becomes `true`. `ProtectedRoute` now allows navigation to `/homepage`.
+`isAuthenticated` becomes `true`. Tokens survive page refresh via `sessionStorage`. `ProtectedRoute` now allows navigation to `/homepage`.
 
 ---
 
@@ -240,16 +233,16 @@ OAuth2UserService.loadUser()
     ↓  linkGoogleAccount() or createGoogleUser()
     ↓  returns OAuth2UserPrincipal wrapping internal User entity
 OAuth2SuccessHandler.onAuthenticationSuccess()
-    ↓  authService.completeOAuthLogin(user) → issueTokens() → JWT + refresh token
+    ↓  authService.completeOAuthLogin(user) → issueTokens() → JWT + Redis session token
     ↓  oAuthTokenStore.store(authResponse) → returns opaque UUID code (30s TTL)
     ↓  redirects browser to /oauth/callback?code=<uuid>
 OAuthCallbackPage.useEffect()
     ↓  authService.exchangeOAuthCode(code) → POST /api/v1/auth/oauth2/token
 AuthController.exchangeOAuthCode()
     ↓  authService.exchangeOAuthCode() → oAuthTokenStore.consume(code)
-    ↓  returns AuthResponse { accessToken, refreshToken, requiresPasswordSet, user }
+    ↓  returns AuthResponse { accessToken, sessionToken, requiresPasswordSet, user }
 OAuthCallbackPage (back in frontend)
-    ↓  AuthContext.login(accessToken, user) → stored in React state (memory only)
+    ↓  AuthContext.login(accessToken, sessionToken, user) → stored in sessionStorage
     ↓  navigate('/set-password') if new Google user, else navigate('/homepage')
 ```
 
@@ -261,6 +254,6 @@ OAuthCallbackPage (back in frontend)
 |---|---|---|
 | **Opaque code instead of JWT in URL** | `OAuthTokenStore` | Prevents JWT leaking in browser history / server logs (CWE-598 mitigation) |
 | **30-second TTL + single-use code** | `OAuthTokenStore.consume()` removes on read | Replay attack prevention |
-| **JWT stored in React memory, not localStorage** | `AuthContext.jsx` | XSS protection |
+| **JWT + sessionToken in sessionStorage** | `AuthContext.jsx` | Survives page refresh, cleared on tab close |
 | **`passwordSet=false` flag** | `issueTokens()` → `AuthResponse` | New Google users are issued tokens but routed to `/set-password` first |
-| **Single active session** | `issueTokens()` calls `deleteByUser()` first | Only one refresh token per user at any time |
+| **Redis session token (30min sliding)** | `SessionTokenService` | Server-side revocation + inactivity timeout |

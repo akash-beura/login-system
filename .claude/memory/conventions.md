@@ -5,7 +5,7 @@
 - Services: `*Service` (interface) + `*ServiceImpl` (implementation)
 - Repositories: `*Repository` (extends `JpaRepository`)
 - DTOs: `*Request` (inbound) / `*Response` (outbound)
-- Entities: singular noun (`User`, `RefreshToken`)
+- Entities: singular noun (`User`)
 - Exceptions: descriptive noun (`UserNotFoundException`, `TokenExpiredException`)
 
 ## API Design
@@ -17,8 +17,8 @@
 
 ## Security
 - BCrypt for password hashing (never MD5/SHA)
-- JWT access token: 1h TTL, HS256
-- Refresh token: opaque UUID, 7d TTL, httpOnly cookie
+- JWT access token: 1h TTL, HS256, stored in sessionStorage
+- Session token: opaque UUID in Redis, 30min sliding TTL, sent via X-Session-Token header
 - No sensitive data (passwords, tokens, UUIDs) in logs
 - Email always lowercased (`Locale.ROOT`) at service boundary before DB read/write
 
